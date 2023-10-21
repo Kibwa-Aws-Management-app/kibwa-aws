@@ -1,2 +1,5 @@
 aws_venv/
 .idea
+aws_management
+db.sqlite3
+my_settings.py

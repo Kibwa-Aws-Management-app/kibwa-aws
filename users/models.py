@@ -8,7 +8,8 @@ class User(models.Model):
     root_id = models.CharField(max_length=200, primary_key=True, unique=True)
     password = models.CharField(max_length=200)
 
-    # class Meta:
-    #     db_table = "user"
+    class Meta:
+        db_table = "users"
+
     def __str__(self):
         return f"User-{str(self.root_id)}"
