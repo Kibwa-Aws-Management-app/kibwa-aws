@@ -40,6 +40,10 @@ INSTALLED_APPS = [
     'rest_framework',
     'users',
     'iam',
+    'ec2',
+    'rds',
+    's3',
+    'vpc'
 ]
 
 REST_FRAMEWORK = {
