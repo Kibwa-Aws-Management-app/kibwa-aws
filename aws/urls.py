@@ -21,4 +21,8 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path("users/", include("users.urls")),
     path("iam/", include("iam.urls")),
+    path("ec2/", include("ec2.urls")),
+    path("rds/", include("rds.urls")),
+    path("s3/", include("s3.urls")),
+    path("vpc/", include("vpc.urls")),
 ]
