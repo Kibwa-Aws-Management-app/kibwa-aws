@@ -1,5 +1,4 @@
 aws_venv/
-.idea
-aws_management
+.idea/
 db.sqlite3
 my_settings.py

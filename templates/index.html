@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<p> 안녕~ This is index.html </p>
+<div>
+    {% if user.is_authenticated %}
+        <a href="{% url 'users:logout' %}">로그아웃</a>
+        {% if user.access_key %}
+            {#   FIXME: 다른 테스트로 가는 태그   #}
+            <div>
+                <a href="{% url 'users:logout' %}">IAM</a>
+                <a href="{% url 'users:logout' %}">S3</a>
+                <a href="{% url 'users:logout' %}">VPC</a>
+                <a href="{% url 'users:logout' %}">EC2</a>
+                <a href="{% url 'users:logout' %}">RDS</a>
+            </div>
+        {% else %}
+            {#  AWS 액세스 키를 입력받을 폼  #}
+            <a href="{% url 'users:access' %}">액세스 키 입력</a>
+        {% endif %}
+
+    {% else %}
+        <a href="{% url 'users:signup' %}">회원가입</a>
+        <a href="{% url 'users:login' %}">로그인</a>
+    {% endif %}
+</div>
+
+{% endblock %}
