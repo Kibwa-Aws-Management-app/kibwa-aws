@@ -4,8 +4,8 @@ from django.db import models
 from django_enumfield import enum
 from django_enum_choices.fields import EnumChoiceField
 
-
 from users.models import User
+
 
 # django-enumfield
 # django-enum-choices
@@ -20,17 +20,37 @@ class IMPORTANCE(enum.Enum):
 
 
 class IamEnum(Enum):
-    ADMINISTRATOR_ACCESS_WITH_MFA = 'iam_administrator_access_with_mfa'
-    AVOID_ROOT_USAGE = 'iam_avoid_root_usage'
-    ATTACHED_POLICY_NO_ADMINISTRATIVE_PRIVILEGES = 'iam_aws_attached_policy_no_administrative_privileges'
+
+    def __new__(cls, value, importance=IMPORTANCE.MID, pass_criteria=''):
+        obj = object.__new__(cls)
+        obj._value_ = value
+        obj.importance = importance
+        obj.pass_criteria = pass_criteria
+        return obj
+
+    ADMINISTRATOR_ACCESS_WITH_MFA = (
+        'iam_administrator_access_with_mfa',
+        IMPORTANCE.HIGH,
+        '주의 사항!'
+    )
+    AVOID_ROOT_USAGE = (
+        'iam_avoid_root_usage',
+        IMPORTANCE.HIGH,
+        '주의 사항!'
+    )
+    ATTACHED_POLICY_NO_ADMINISTRATIVE_PRIVILEGES = 'iam_attached_policy_no_administrative_privileges'
     CHECK_SAML_PROVIDERS_STS = 'iam_check_saml_providers_sts'
     CUSTOMER_ATTACHED_POLICY_NO_ADMINISTRATIVE_PRIVILEGES = 'iam_customer_attached_policy_no_administrative_privileges'
     CUSTOMER_UNATTACHED_POLICY_NO_ADMINISTRATIVE_PRIVILEGES = 'iam_customer_unattached_policy_no_administrative_privileges'
     DISABLE_30_DAYS_CREDENTIALS = 'iam_disable_30_days_credentials'
     DISABLE_45_DAYS_CREDENTIALS = 'iam_disable_45_days_credentials'
     DISABLE_90_DAYS_CREDENTIALS = 'iam_disable_90_days_credentials'
-    INLINE_POLICY_NO_ADMINISTRATIVE_PRIVILEGES = 'iam_inline_policy_no_administrative_privileges'
-    NO_CUSTOM_POLICY_PERMISSIVE_ROLE_ASSUMPTION = 'iam_no_custom_policy_permissive_role_assumption'
+    INLINE_POLICY_NO_ADMINISTRATIVE_PRIVILEGES = (
+        'iam_inline_policy_no_administrative_privileges'
+    )
+    NO_CUSTOM_POLICY_PERMISSIVE_ROLE_ASSUMPTION = (
+        'iam_no_custom_policy_permissive_role_assumption'
+    )
     NO_EXPIRED_SERVER_CERTIFICATES_STORED = 'iam_no_expired_server_certificates_stored'
     NO_ROOT_ACCESS_KEY = 'iam_no_root_access_key'
     PASSWORD_POLICY_EXPIRES_WITHIN_90_DAYS_OR_LESS = 'iam_password_policy_expires_passwords_within_90_days_or_less'
@@ -54,7 +74,11 @@ class IamEnum(Enum):
     SUPPORT_ROLE_CREATED = 'iam_support_role_created'
     USER_HARDWARE_MFA_ENABLED = 'iam_user_hardware_mfa_enabled'
     USER_MFA_ENABLED = 'iam_user_mfa_enabled'
-    USER_NO_ADMINISTRATOR_ACCESS = 'iam_user_no_administrator_access'
+    USER_NO_ADMINISTRATOR_ACCESS = (
+        'iam_user_no_administrator_access',
+        IMPORTANCE.HIGH,
+        '정책 주의 사항!'
+    )
     USER_NO_SETUP_INITIAL_ACCESS_KEY = 'iam_user_no_setup_initial_access_key'
     USER_TWO_ACTIVE_ACCESS_KEYS = 'iam_user_two_active_access_keys'
 
@@ -80,7 +104,7 @@ class IamList(models.Model):
     status = models.BooleanField()
     pass_line = models.TextField()
     check_point = models.TextField()
-    modified_data = models.DateTimeField()
+    modified_date = models.DateTimeField()
 
     def __str__(self):
         return f"IamList-{str(self.iam_id)}"

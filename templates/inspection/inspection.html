@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+    {% if user.is_authenticated %}
+        <h1>Inspection Results for {{ user }}</h1>
+        <table>
+            <tr>
+                <th>항목명</th>
+                <th>중요도</th>
+                <th>검사 일자</th>
+                <th>Status</th>
+                <th>Detail</th>
+            </tr>
+            {% for result in results %}
+                <tr>
+                    <td>{{ result.check_name }}</td>
+                    <td>{{ result.importance }}</td>
+                    <td>{{ result.date }}</td>
+                    <td>
+                        {% if result.status == True %}
+                            PASS
+                        {% else %}
+                            FAIL
+                        {% endif %}
+                    </td>
+                    <td>{{ result.info }}</td>
+                </tr>
+            {% endfor %}
+        </table>
+    {% else %}
+        <h1>You are not logged in</h1>
+        <p>You need to <a href="{% url 'users:login' %}">login</a> to view the inspection results.</p>
+    {% endif %}
+
+{% endblock %}

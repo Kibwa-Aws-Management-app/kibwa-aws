@@ -1,0 +1,4 @@
+aws_venv/
+.idea/
+db.sqlite3
+my_settings.py
