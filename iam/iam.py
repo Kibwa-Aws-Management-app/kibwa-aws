@@ -2,6 +2,11 @@ import boto3
 from datetime import datetime, timezone
 
 
+# PASS == True | FAIL == False
+# return { "status" : True, "info": "어쩌구" }
+from iam.models import IamEnum
+
+
 class Iamboto3:
     def __init__(self, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_DEFAULT_REGION):
         self.iam_client = boto3.client(
@@ -19,13 +24,14 @@ class Iamboto3:
         info = self.iam_client.get_user(UserName=user_name)
         print(info)
 
-    # AWS 첨부 정책에서 관리자 권한 없음
-    def check_no_user_inline_policy(self):
+    # 인라인 정책에서 관리자 권한 없음
+    def iam_inline_policy_no_administrative_privileges(self):
         for username in self.iam_list:
             if self.check_no_user_inline_policy_with_username(username):
                 print(f"'{username}'에서 인라인 정책 관리자 권한이 있음이 발견 되었습니다.")
+                return {"status": False, "info": f"'{username}'에서 인라인 정책 관리자 권한이 있음이 발견 되었습니다."}
+        return {"status": True, "info": "AWS 첨부 정책에서 관리자 권한이 없으므로 안전합니다."}
 
-    # 인라인 정책에서 관리자 권한 없음
     def check_no_user_inline_policy_with_username(self, user_name):
         try:
             # iam 계정의 인라인 정책 리스트
@@ -48,10 +54,12 @@ class Iamboto3:
         return False
 
     # 사용자 정의 첨부 정책에 관리자 권한이 없습니다.
-    def check_no_AA_in_attach(self):
+    def iam_user_no_administrator_access(self):
         for username in self.iam_list:
             if self.check_no_AA_in_attach_with_username(username):
-                print(f"""{username}에서 인라인 정책 관리자 권한이 있음이 발견 되었습니다.""")
+                print(f"""{username}에서 첨부 정책에 권한이 있음이 발견 되었습니다.""")
+                return {"status": False, "info": f"'{username}'에서 첨부 정책에 권한이 있음이 발견 되었습니다."}
+        return {"status": True, "info": "사용자 정의 첨부 정책에 관리자 권한이 없으므로 안전합니다."}
 
     def check_no_AA_in_attach_with_username(self, user_name):
         try:
@@ -69,10 +77,12 @@ class Iamboto3:
         return False
 
     # 사용자 정의 정책을 통한 롤 가정 없음
-    def check_no_role_policy(self):
+    def iam_no_custom_policy_permissive_role_assumption(self):
         roles = self.iam_client.list_roles()
         for r in roles['Roles']:
-            self.check_no_role_policy_with_roleName(r['RoleName'])
+            if self.check_no_role_policy_with_roleName(r['RoleName']):
+                return {"status": False, "info": f"'{r['RoleName']}'이 룰 가정을 허용하고 있습니다."}
+        return {"status": True, "info": f"룰 가정을 허용하지 않으므로 안전합니다."}
 
     def check_no_role_policy_with_roleName(self, role_name):
         role = self.iam_client.get_role(RoleName=role_name)
@@ -83,9 +93,11 @@ class Iamboto3:
         return False
 
     # Root 계정을 사용하지 않고 IAM 사용자 또는 역할을 사용합니다. => ROOT 계정 사용하고 있으면 나가리
-    def check_root_user(self):
+    def iam_avoid_root_usage(self):
         for u in self.iam_list:
-            self.check_root_user_with_username(u)
+            if self.check_root_user_with_username(u):
+                return {"status": False, "info": f"'{u}'이 root 계정입니다."}
+        return {"status": True, "info": f"Root 계정을 사용하지 않고 있으므로 안전합니다."}
 
     def check_root_user_with_username(self, user_name):
         user = self.iam_client.get_user(UserName=user_name)
@@ -96,9 +108,10 @@ class Iamboto3:
         print(f"[PASS] '{user_name}'이 root 계정이 아닙니다.")
         return False
 
+    # FIXME: return 값 수정하기!!!!!
     # 자격증명 비활성화 기간
     def check_iam_user_credentials(self):
-        userSet = set() 
+        userSet = set()
 
         for user in self.users:
             username = user['UserName']
@@ -138,7 +151,7 @@ class Iamboto3:
 
         for user in self.users:
             username = user['UserName']
-            response = self.iam_client.list_attached_user_policies(UserName=username)   # 사용자의 관리자 액세스 정책 확인
+            response = self.iam_client.list_attached_user_policies(UserName=username)  # 사용자의 관리자 액세스 정책 확인
 
             for policy in response['AttachedPolicies']:
                 if policy['PolicyArn'] == administrator_access_policy_arn:
@@ -207,7 +220,7 @@ class Iamboto3:
 
             # 사용자 정보 가져오기
             response = self.iam_client.get_user(UserName=username)
-            
+
             # 사용자의 MFA 활성화 상태 확인
             if 'MFA' in response['User'] and 'MFAEnabled' in response['User']['MFA']:
                 if response['User']['MFA']['MFAEnabled']:
@@ -218,17 +231,32 @@ class Iamboto3:
                 print(f"User '{username}' does not have MFA information.")
 
 
-if __name__ == "__main__":
-    iam_instance = Iamboto3("AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY", "AWS_DEFAULT_REGION")  # 클래스의 인스턴스 생성
-    iam_instance.check_administrator_access_with_mfa()
-    print("----------")
-    iam_instance.check_iam_user_credentials()
-    print("----------")
-    iam_instance.check_root_hw_mfa_enabled()
-    print("----------")
-    iam_instance.check_root_mfa_enabled()
-    print("----------")
-    iam_instance.check_user_hardware_mfa_enabled()
-    print("----------")
-    iam_instance.check_user_mfa_enabled()
+def iam_boto3(key_id, secret, region):
+    iam = Iamboto3(key_id, secret, region)  # 클래스의 인스턴스 생성
 
+    check_list = get_check_list()
+    result = []
+
+    for method in check_list:
+        if hasattr(iam, method):
+            m = getattr(iam, method)
+            if callable(m):
+                buf = m()
+                buf['check_name'] = method[4:].upper()
+                # buf['check_name'] = str(method)
+                result.append(buf)
+            else:
+                result.append({"check_name": None, "status": False, "info": "체크 함수를 실행시키는 과정에서 문제가 발생하였습니다."})
+        else:
+            result.append({"check_name": None, "status": False, "info": "AWS 연결에 문제가 발생하였습니다. 액세스 아이디와 키를 재설정 해주세요."})
+
+    return result
+
+
+def get_check_list():
+    return [
+        'iam_inline_policy_no_administrative_privileges',
+        'iam_user_no_administrator_access',
+        'iam_no_custom_policy_permissive_role_assumption',
+        'iam_avoid_root_usage'
+    ]

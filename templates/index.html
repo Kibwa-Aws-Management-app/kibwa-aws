@@ -9,7 +9,7 @@
         {% if user.access_key %}
             {#   FIXME: 다른 테스트로 가는 태그   #}
             <div>
-                <a href="{% url 'users:logout' %}">IAM</a>
+                <a href="{% url 'iam:iam' %}">IAM</a>
                 <a href="{% url 'users:logout' %}">S3</a>
                 <a href="{% url 'users:logout' %}">VPC</a>
                 <a href="{% url 'users:logout' %}">EC2</a>
