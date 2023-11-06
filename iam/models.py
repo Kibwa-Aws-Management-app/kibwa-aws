@@ -42,9 +42,7 @@ class IamEnum(Enum):
     CHECK_SAML_PROVIDERS_STS = 'iam_check_saml_providers_sts'
     CUSTOMER_ATTACHED_POLICY_NO_ADMINISTRATIVE_PRIVILEGES = 'iam_customer_attached_policy_no_administrative_privileges'
     CUSTOMER_UNATTACHED_POLICY_NO_ADMINISTRATIVE_PRIVILEGES = 'iam_customer_unattached_policy_no_administrative_privileges'
-    DISABLE_30_DAYS_CREDENTIALS = 'iam_disable_30_days_credentials'
-    DISABLE_45_DAYS_CREDENTIALS = 'iam_disable_45_days_credentials'
-    DISABLE_90_DAYS_CREDENTIALS = 'iam_disable_90_days_credentials'
+    CHECK_DISABLE_DAYS_CREDENTIALS = 'iam_check_disable_days_credentials'
     INLINE_POLICY_NO_ADMINISTRATIVE_PRIVILEGES = (
         'iam_inline_policy_no_administrative_privileges'
     )
