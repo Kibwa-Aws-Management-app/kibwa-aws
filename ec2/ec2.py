@@ -238,6 +238,88 @@ class ec2:
         info = self.ec2_client.get_user(UserName=user_name)
         print(info)
 
+    #지연 ###########################3
+    def check_ami_public(self):
+        # AMI의 공개 여부 확인
+        ami_images = self.ec2_client.describe_images(Owners=['self'])
+        results = []
+
+        for image in ami_images['Images']:
+            image_id = image['ImageId']
+            is_public = image['Public']
+            status = 'FAIL' if is_public else 'PASS'
+            print(f"[{status}] AMI {image_id} - AMI is {'public' if is_public else 'not public'}")
+            if status == 'FAIL':
+                results.append(image_id)
+        if results:
+            return {"status": False, "info": " "}
+        else:
+            return {"status": True, "info": " "}
+
+    def check_snapshot_encryption(self):
+        # 스냅샷 암호화 상태 확인
+        snapshots = self.ec2_client.describe_snapshots(OwnerIds=['self'])
+        results = []
+        for snapshot in snapshots['Snapshots']:
+            snapshot_id = snapshot['SnapshotId']
+            is_encrypted = snapshot['Encrypted']
+            status = 'PASS' if is_encrypted else 'FAIL'
+            print(f"[{status}] Snapshot {snapshot_id} - Snapshot is {'encrypted' if is_encrypted else 'not encrypted'}")
+            if status == 'FAIL':
+                results.append(snapshot_id)
+        if results:
+            return {"status": False, "info": " "}
+        else:
+            return {"status": True, "info": " "}
+        
+    def check_snapshot_public(self):
+        # 스냅샷 공개 여부 확인
+        snapshots = self.ec2_client.describe_snapshots(OwnerIds=['self'])
+        results = []
+        for snapshot in snapshots['Snapshots']:
+            snapshot_id = snapshot['SnapshotId']
+            is_public = snapshot['Public']
+            status = 'FAIL' if is_public else 'PASS'
+            print(f"[{status}] Snapshot {snapshot_id} - Snapshot is {'public' if is_public else 'not public'}")
+            if status == 'FAIL':
+                results.append(snapshot_id)
+        if results:
+            return {"status": False, "info": " "}
+        else:
+            return {"status": True, "info": " "}
+        
+    def check_volume_default_encryption(self):
+        # 기본 볼륨 암호화 상태 확인
+        volumes = self.ec2_client.describe_volumes()
+        results = []
+        for volume in volumes['Volumes']:
+            volume_id = volume['VolumeId']
+            is_encrypted = volume['Encrypted']
+            status = 'PASS' if is_encrypted else 'FAIL'
+            print(f"[{status}] Volume {volume_id} - Volume is {'encrypted' if is_encrypted else 'not encrypted'}")
+            if status == 'FAIL':
+                results.append(volume_id)
+        if results:
+            return {"status": False, "info": " "}
+        else:
+            return {"status": True, "info": " "}
+        
+    def check_volume_encryption(self):
+        # 볼륨 암호화 상태 확인
+        volumes = self.ec2_client.describe_volumes()
+        results = []
+        for volume in volumes['Volumes']:
+            volume_id = volume['VolumeId']
+            is_encrypted = volume['Encrypted']
+            status = 'PASS' if is_encrypted else 'FAIL'
+            print(f"[{status}] Volume {volume_id} - Volume is {'encrypted' if is_encrypted else 'not encrypted'}")
+            if status == 'FAIL':
+                results.append(volume_id)
+        if results:
+            return {"status": False, "info": " "}
+        else:
+            return {"status": True, "info": " "}
+    
     # Shodan API 키 설정
     shodan_api_key = 'your_shodan_api_key'
 
