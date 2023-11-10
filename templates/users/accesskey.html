@@ -1,6 +1,11 @@
 {% extends "base.html" %}
 
 {# 주의!!! label의 for, input의 name, id 변경 금지! #}
+<head>
+    <title>액세스 키 입력</title>
+    <link rel="stylesheet" href="../css/login.css">
+</head>
+<body>
 {% block content %}
 <div class="container my-3">
     <p><strong>{{ user }}</strong>님,</p>
@@ -8,19 +13,22 @@
         {% csrf_token %}
         <div class="mb-3">
             <label for="key_id">Enter the Access ID</label>
-            <input type="text" class="form-control" name="key_id" id="key_id"
+            <input type="text" class="form-control" name="key_id" id="key_id" placeholder="access id"
                    value="{{ form.key_id.value|default_if_none:'' }}">
         </div>
         <div class="mb-3">
             <label for="access_key">Enter the Access Key</label>
-            <input type="text" class="form-control" name="access_key" id="access_key"
+            <input type="text" class="form-control" name="access_key" id="access_key"  placeholder="access key"
                    value="{{ form.access_key.value|default_if_none:'' }}">
         </div>
         <div class="mb-3">
             <label for="aws_region">AWS Region</label>
-            {{ form.aws_region }}
+            <input type="text" class="form-control" name="aws_region" id="aws_region" placeholder="aws region"
+                   value="{{ form.aws_region.value|default_if_none:'' }}">
         </div>
+        <div style="text-align: center; margin-top: 30px;">
         <button type="submit" class="btn btn-primary">입력</button>
+    </div>
     </form>
 
 {# 회원가입시 아이디 또는 비밀번호에 문제가 있을 경우 #}
@@ -31,3 +39,4 @@
     {% endif %}
 </div>
 {% endblock %}
+</body>

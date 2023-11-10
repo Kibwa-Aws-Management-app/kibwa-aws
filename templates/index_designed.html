@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>AWS Management App</title>
+    <script src="../js/index.js"></script>
+    <link rel="stylesheet" href="../css/index.css">
+</head>
+
+<body>
+    <div id="home" class="home">
+        <div class="side-bar">
+            <div class="side-bar-title">
+                <h1 style="margin: 20px;">AWS<br>Management<br>App</h1>
+            </div>
+            <div class="side-bar-menu">
+                <ul>
+                    <div class="menu" style="margin-bottom: 100px;" onclick="start_home()">
+                        <img class="logo" src="../img/home_logo.png" alt="home logo">
+                        HOME
+                    </div>
+                    <div class="menu" onclick="start_iam()">
+                        <img class="logo" src="../img/iam_logo.png" alt="iam logo">
+                        IAM
+                    </div>
+                    <div class="menu" onclick="start_ec2()">
+                        <img class="logo" src="../img/ec2_logo.png" alt="ec2 logo">
+                        EC2
+                    </div>
+                    <div class="menu" onclick="start_vpc()">
+                        <img class="logo" src="../img/vpc_logo.png" alt="vpc logo">
+                        VPC
+                    </div>
+                    <div class="menu" onclick="start_s3()">
+                        <img class="logo" src="../img/s3_logo.png" alt="s3 logo">
+                        S3
+                    </div>
+                    <div class="menu" onclick="start_rds()">
+                        <img class="logo" src="../img/rds_logo.png" alt="rds logo">
+                        RDS
+                    </div>
+                </ul>
+            </div>
+        </div>
+        <div class="main-content">
+            <div class="main-content-title" id="main-content-title">
+                <div style="display: flex;">
+                    <img class="big-logo" src="../img/iam_logo.png" alt="iam logo">
+                    <h1>IAM</h1>
+                </div>
+            </div>
+            <div class="main-content-body">
+                <div class="short-panel">
+                    <div class="short-checklist">
+                        <div class="icon-circle">
+                            <img class="short-logo" src="../img/check.png" alt="check" style="margin-top: 5px;">
+                        </div>
+                        <div>
+                            <div style="font-size: 15px; font-weight: bold; color: grey;">
+                                통과된 점검
+                            </div>
+                            <div style="font-size: 25px; font-weight: bold;">
+                                20
+                            </div>
+                            <div style="display: flex;">
+                                <img class="arrow-icon" src="../img/arrow_up.png" alt="arrow up">
+                                <div>
+                                    8% this month
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="short-checklist">
+                        <div class="icon-circle" style="background-color: rgba(255, 0, 0, 0.5);">
+                            <img class="short-logo" src="../img/toolkit_icon.png" alt="check">
+                        </div>
+                        <div>
+                            <div style="font-size: 15px; font-weight: bold; color: grey;">
+                                해결해야 할 문제점
+                            </div>
+                            <div style="font-size: 25px; font-weight: bold;">
+                                4
+                            </div>
+                            <div style="display: flex;">
+                                <img class="arrow-icon" src="../img/arrow_up.png" alt="arrow up">
+                                <div>
+                                    1% this month
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="short-checklist">
+                        <div class="icon-circle">
+                            <img class="short-logo" src="../img/clock_icon.png" alt="check">
+                        </div>
+                        <div>
+                            <div style="font-size: 15px; font-weight: bold; color: grey;">
+                                마지막 점검일로부터
+                            </div>
+                            <div style="font-size: 25px; font-weight: bold;">
+                                20
+                            </div>
+                            <div style="display: flex;">
+                                <!-- <img class="arrow-icon" src="../img/arrow_up.png" alt="arrow up"> -->
+                                <div>
+                                    점검 필요!
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="main-checklist">
+                    <div style="display: flex;">
+                        <div>
+                            <div style="font-size: 20px; font-weight: bold; margin-bottom: 5px;">
+                                보안 점검 현황
+                            </div>
+                            <div style="color: red;">
+                                보안 위험 요소를 확인하세요!
+                            </div>
+                        </div>
+                        <div>
+                            <button id="check-btn" onclick="check()">재점검</button>
+                        </div>
+                    </div>
+                    <table class="security-table" id="iam-table">
+                        <!-- 5x9 테이블 항목명 중요도 항목코드 검사일자 status -->
+                        <thead>
+                            <tr>
+                                <th>활용 항목명</th>
+                                <th class="second-child">중요도</th>
+                                <th>항목코드</th>
+                                <th>검사일자</th>
+                                <th>status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>항목 1</td>
+                                <td class="second-child">중요도 1</td>
+                                <td>코드 1</td>
+                                <td>2023-10-30</td>
+                                <td>PASS</td>
+                            </tr>
+                            <tr>
+                                <td>항목 3</td>
+                                <td class="second-child">중요도 3</td>
+                                <td>코드 3</td>
+                                <td>2023-10-29</td>
+                                <td>PASS</td>
+                            </tr>
+                            <tr>
+                                <td>항목 4</td>
+                                <td class="second-child">중요도 4</td>
+                                <td>코드 4</td>
+                                <td>2023-10-29</td>
+                                <td>FAIL</td>
+                            </tr>
+                            <tr>
+                                <td>항목 2</td>
+                                <td class="second-child">중요도 2</td>
+                                <td>코드 2</td>
+                                <td>2023-10-29</td>
+                                <td>FAIL</td>
+                            </tr>
+                            <tr>
+                                <td>항목 2</td>
+                                <td class="second-child">중요도 2</td>
+                                <td>코드 2</td>
+                                <td>2023-10-29</td>
+                                <td>PASS</td>
+                            </tr>
+                            <tr>
+                                <td>항목 2</td>
+                                <td class="second-child">중요도 2</td>
+                                <td>코드 2</td>
+                                <td>2023-10-29</td>
+                                <td>PASS</td>
+                            </tr>
+                            <tr>
+                                <td>항목 2</td>
+                                <td class="second-child">중요도 2</td>
+                                <td>코드 2</td>
+                                <td>2023-10-29</td>
+                                <td>FAIL</td>
+                            </tr>
+                            <tr>
+                                <td>항목 2</td>
+                                <td class="second-child">중요도 2</td>
+                                <td>코드 2</td>
+                                <td>2023-10-29</td>
+                                <td>FAIL</td>
+                            </tr>
+
+                        </tbody>
+                    </table>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

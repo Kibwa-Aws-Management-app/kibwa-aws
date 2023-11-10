@@ -2,35 +2,80 @@
 
 {% block content %}
 
+<head>
+    <title>AWS 보안 점검 상세 내역</title>
+    <!-- <link rel="stylesheet" href="../css/inspection.css"> -->
+</head>
+
+<body>
+    <link rel="stylesheet" href="../css/inspection.css">
     {% if user.is_authenticated %}
-        <h1>Inspection Results for {{ user }}</h1>
-        <table>
-            <tr>
-                <th>항목명</th>
-                <th>중요도</th>
-                <th>검사 일자</th>
-                <th>Status</th>
-                <th>Detail</th>
-            </tr>
-            {% for result in results %}
-                <tr>
-                    <td>{{ result.check_name }}</td>
-                    <td>{{ result.importance }}</td>
-                    <td>{{ result.date }}</td>
-                    <td>
-                        {% if result.status == True %}
-                            PASS
-                        {% else %}
-                            FAIL
-                        {% endif %}
-                    </td>
-                    <td>{{ result.info }}</td>
-                </tr>
-            {% endfor %}
-        </table>
+    <div class="header-container">
+        <h1>AWS 보안 점검 상세 내역 - {{ user }}</h1>
+    </div>
+    <!-- <table>
+    <tr>
+        <th>항목명</th>
+        <th>중요도</th>
+        <th>검사 일자</th>
+        <th>Status</th>
+        <th>Detail</th>
+    </tr>
+    {% for result in results %}
+    <tr>
+        <td>{{ result.check_name }}</td>
+        <td>{{ result.importance }}</td>
+        <td>{{ result.date }}</td>
+        <td>
+            {% if result.status == True %}
+            PASS
+            {% else %}
+            FAIL
+            {% endif %}
+        </td>
+        <td>{{ result.info }}</td>
+    </tr>
+    {% endfor %}
+</table> -->
+
+
+    <table>
+        {% for result in results %} <!-- 이거 어디에 넣는거지??? -->
+        <tr>
+            <th>항목명</th>
+            <td>{{ result.check_name }}</td>
+        </tr>
+        <tr>
+            <th>중요도</th>
+            <td>{{ result.importance }}</td>
+        </tr>
+        <tr>
+            <th>검사 일자</th>
+            <td>{{ result.date }}</td>
+        </tr>
+        <tr>
+            <th>Status</th>
+            <td>
+                {% if result.status == True %}
+                PASS
+                {% else %}
+                FAIL
+                {% endif %}
+            </td>
+        </tr>
+        <tr>
+            <th>Detail</th>
+            <td>{{ result.info }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    <div class="button-container">
+        <button class="print-button" onclick="window.print()">Print</button>
+    </div>
     {% else %}
-        <h1>You are not logged in</h1>
-        <p>You need to <a href="{% url 'users:login' %}">login</a> to view the inspection results.</p>
+    <h1>You are not logged in</h1>
+    <p>You need to <a href="{% url 'users:login' %}">login</a> to view the inspection results.</p>
     {% endif %}
+</body>
 
 {% endblock %}
