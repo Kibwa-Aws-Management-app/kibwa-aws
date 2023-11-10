@@ -133,7 +133,7 @@ class ec2:
 
     #은솔 
     #########################################
-    def ec2_elastic_ip_shodan(shodan_api_key, elastic_ip):
+    '''def ec2_elastic_ip_shodan(shodan_api_key, elastic_ip):
         try:
             # Shodan API 초기화
             shodan_api = shodan.Shodan(shodan_api_key)
@@ -173,7 +173,7 @@ class ec2:
             result = str(e)
 
         print(f"Elastic IP address assignment: {result}")
-
+    
 
     # EC2 인스턴스 상세 모니터링 확인
     def ec2_instance_detailed_monitoring_enabled(ec2, instance_id):
@@ -236,10 +236,10 @@ class ec2:
 
     def get_user_info(self, user_name):
         info = self.ec2_client.get_user(UserName=user_name)
-        print(info)
+        print(info)'''
 
     #지연 ###########################3
-    def check_ami_public(self):
+    def ec2_ami_public(self):
         # AMI의 공개 여부 확인
         ami_images = self.ec2_client.describe_images(Owners=['self'])
         results = []
@@ -256,7 +256,7 @@ class ec2:
         else:
             return {"status": True, "info": " "}
 
-    def check_snapshot_encryption(self):
+    def ec2_ebs_snapshots_encrypted(self):
         # 스냅샷 암호화 상태 확인
         snapshots = self.ec2_client.describe_snapshots(OwnerIds=['self'])
         results = []
@@ -272,23 +272,33 @@ class ec2:
         else:
             return {"status": True, "info": " "}
         
-    def check_snapshot_public(self):
-        # 스냅샷 공개 여부 확인
-        snapshots = self.ec2_client.describe_snapshots(OwnerIds=['self'])
-        results = []
-        for snapshot in snapshots['Snapshots']:
-            snapshot_id = snapshot['SnapshotId']
-            is_public = snapshot['Public']
-            status = 'FAIL' if is_public else 'PASS'
-            print(f"[{status}] Snapshot {snapshot_id} - Snapshot is {'public' if is_public else 'not public'}")
-            if status == 'FAIL':
-                results.append(snapshot_id)
-        if results:
-            return {"status": False, "info": " "}
-        else:
-            return {"status": True, "info": " "}
+    def ec2_ebs_public_snapshot(self):
+        snapshots = self.ec2_client.describe_snapshots(OwnerIds=['self'])['Snapshots']
         
-    def check_volume_default_encryption(self):
+        results = []
+
+        for snapshot in snapshots:
+            # 'Public' 키의 존재 여부를 확인하고 처리
+            if 'Public' in snapshot:
+                is_public = snapshot['Public']
+                if is_public:
+                    print(f"[FAIL] : Snapshot {snapshot['SnapshotId']} is public.")
+                    results.append(snapshot['SnapshotId'])
+                else:
+                    print(f"[PASS] : Snapshot {snapshot['SnapshotId']} is not public.")
+            else:
+                # 'Public' 키가 없을 경우
+                print(f"[PASS] : Snapshot {snapshot['SnapshotId']} does not have 'Public' key.")
+
+        if not results:
+            print("[PASS] : No public snapshots found.")
+            print(results)
+            return {"status": True, "info": "모든 스냅샷이 비공개 상태입니다."}
+        else:
+            return {"status": False, "info": f"{results} 스냅샷이 공개 상태입니다."}
+    
+        
+    def ec2_ebs_default_encryption(self):
         # 기본 볼륨 암호화 상태 확인
         volumes = self.ec2_client.describe_volumes()
         results = []
@@ -304,7 +314,7 @@ class ec2:
         else:
             return {"status": True, "info": " "}
         
-    def check_volume_encryption(self):
+    def ec2_ebs_volume_encryption(self):
         # 볼륨 암호화 상태 확인
         volumes = self.ec2_client.describe_volumes()
         results = []
@@ -320,24 +330,20 @@ class ec2:
         else:
             return {"status": True, "info": " "}
     
-    # Shodan API 키 설정
-    shodan_api_key = 'your_shodan_api_key'
-
 def ec2_boto3(key_id, secret, region):
-    ec2 = ec2(key_id, secret, region)  # 클래스의 인스턴스 생성
-    print(ec2.ec2_instance_managed_by_ssm())
-    ec2.ec2_instance_managed_by_ssm()
-    print(ec2.ec2_instance_older_than_specific_days())
+    ec2_instance = ec2(key_id, secret, region)  # 클래스의 인스턴스 생성
+    print(ec2_instance.ec2_instance_managed_by_ssm())
+    ec2_instance.ec2_instance_managed_by_ssm()
+    print(ec2_instance.ec2_instance_older_than_specific_days())
     check_list = get_check_list()
     result = []
 
     for method in check_list:
-        if hasattr(ec2, method):
-            m = getattr(ec2, method)
+        if hasattr(ec2_instance, method):
+            m = getattr(ec2_instance, method)
             if callable(m):
                 buf = m()
                 buf['check_name'] = method[4:].upper()
-                # buf['check_name'] = str(method)
                 result.append(buf)
             else:
                 result.append({"check_name": None, "status": False, "info": "체크 함수를 실행시키는 과정에서 문제가 발생하였습니다."})
@@ -347,6 +353,7 @@ def ec2_boto3(key_id, secret, region):
     return result
 
 
+
 def get_check_list():
     return [
         'ec2_instance_managed_by_ssm',
@@ -354,9 +361,14 @@ def get_check_list():
         'ec2_instance_profile_attached',
         'ec2_instance_public_ip',
         'ec2_instance_secrets_user_data',
-        'ec2_elastic_ip_shodan',
-        'ec2_elastic_ip_unassgined',
-        'ec2_instance_detailed_monitoring_enabled',
-        'ec2_instance_imdsv2_enabled',
-        'ec2_instance_internet_facing_with_instance_profile'
+        #'ec2_elastic_ip_shodan',
+        #'ec2_elastic_ip_unassgined',
+        #'ec2_instance_detailed_monitoring_enabled',
+        #'ec2_instance_imdsv2_enabled',
+        #'ec2_instance_internet_facing_with_instance_profile'
+        'ec2_ami_public',
+        'ec2_ebs_snapshots_encrypted',
+        'ec2_ebs_public_snapshot',
+        'ec2_ebs_default_encryption',
+        'ec2_ebs_volume_encryption'
     ]
