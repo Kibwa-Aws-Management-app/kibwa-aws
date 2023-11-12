@@ -252,9 +252,9 @@ class ec2:
             if status == 'FAIL':
                 results.append(image_id)
         if results:
-            return {"status": False, "info": " "}
+            return {"status": False, "info": f"'{results}' AMI가 공개되어 있습니다."}
         else:
-            return {"status": True, "info": " "}
+            return {"status": True, "info": "모든 AMI가 비공개 상태입니다."}
 
     def ec2_ebs_snapshots_encrypted(self):
         # 스냅샷 암호화 상태 확인
@@ -268,9 +268,10 @@ class ec2:
             if status == 'FAIL':
                 results.append(snapshot_id)
         if results:
-            return {"status": False, "info": " "}
+            return {"status": False, "info": f"'{results}' 스냅샷이 암호화되어 있지 않습니다."}
         else:
-            return {"status": True, "info": " "}
+            return {"status": True, "info": "모든 스냅샷이 암호화되어 있습니다."}
+
         
     def ec2_ebs_public_snapshot(self):
         snapshots = self.ec2_client.describe_snapshots(OwnerIds=['self'])['Snapshots']
@@ -310,9 +311,10 @@ class ec2:
             if status == 'FAIL':
                 results.append(volume_id)
         if results:
-            return {"status": False, "info": " "}
+            return {"status": False, "info": f"'{results}' 볼륨이 암호화되어 있지 않습니다."}
         else:
-            return {"status": True, "info": " "}
+            return {"status": True, "info": "모든 볼륨이 암호화되어 있습니다."}
+
         
     def ec2_ebs_volume_encryption(self):
         # 볼륨 암호화 상태 확인
@@ -326,9 +328,10 @@ class ec2:
             if status == 'FAIL':
                 results.append(volume_id)
         if results:
-            return {"status": False, "info": " "}
+            return {"status": False, "info": f"'{results}' 볼륨이 암호화되어 있지 않습니다."}
         else:
-            return {"status": True, "info": " "}
+            return {"status": True, "info": "모든 볼륨이 암호화되어 있습니다."}
+
     
 def ec2_boto3(key_id, secret, region):
     ec2_instance = ec2(key_id, secret, region)  # 클래스의 인스턴스 생성
