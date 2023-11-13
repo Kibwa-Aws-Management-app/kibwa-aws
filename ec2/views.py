@@ -45,8 +45,8 @@ def save_ec2(user, result):
             'total_num': len(result)
         }
     )
-    if not created and iam.last_modified:
-        time_difference = datetime.now(tz=timezone.utc) - iam.last_modified
+    if not created and ec2.last_modified:
+        time_difference = datetime.now(tz=timezone.utc) - ec2.last_modified
         days_diff = time_difference.days
     else:
         days_diff = 0

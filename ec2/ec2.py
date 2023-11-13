@@ -14,8 +14,8 @@ class ec2:
         self.instance_age_limit = 180  # 원하는데로 변경
         self.ssm_client = boto3.client('ssm')
 
-        self.shodan_api_key = 'your_shodan_api_key'
-        self.instance_id = self.ec2_client.describe_instance_attribute()['InstanceId']
+        #self.shodan_api_key = 'your_shodan_api_key'
+        #self.instance_id = self.ec2_client.describe_instance_attribute()['InstanceId']
 
     # 은경 ######################
     def ec2_instance_managed_by_ssm(self):
@@ -140,106 +140,7 @@ class ec2:
         else:
             return {"status": False, "info": f"'{results}' 인스턴스의 사용자 데이터에 민감한 정보가 포함되어 있습니다."}
 
-    # 은솔 ######################
-    def ec2_elastic_ip_shodan(self):
-
-        elastic_ips = self.ec2_client.describe_addresses()[['Addresses']]
-        for elastic_ip in elastic_ips['PublicIp']:
-            try:
-                # Shodan API 초기화
-                shodan_api = shodan.Shodan(self.shodan_api_key)
-
-                # Shodan에서 Elastic IP 주소 확인
-                check = shodan_api.host(elastic_ip)
-
-                # Elastic IP 주소가 Shodan에 확인되면 
-                print("FAIL - Elastic IP address in Shodan.")
-                return {"status": False, "info": "Elastic IP 주소가 Shodan에 등록되어 있습니다."}
-
-            except shodan.APIERROR as e:
-                if e.value == "No information available for that IP.":
-                    # Elastic IP 주소가 Shodan에 확인되지 않으면 PASS
-                    print("PASS - Elastic IP address not in Shodan.")
-                    return {"status": True, "info": "Elastic IP 주소가 Shodan에 확인되지 않아 안전합니다."}
-                else:
-                    # 다른 오류 처리
-                    print(str(e))
-                    return {"status": False, "info": "Elastic IP 주소가 Shodan에 등록되어 있습니다."}
-
-    # Elastic IP 주소 할당 확인
-    def ec2_elastic_ip_unassgined(self):
-        try:
-            elastic_ip = self.ec2_client.describe_addresses()['Addresses']
-            if elastic_ip['PublicIp']:
-                # Elastic IP 주소가 할당되면 PASS
-                result = "PASS"
-                return {"status": True, "info": "Elastic IP 주소가 할당되어 있어 안전합니다."}
-            else:
-                # Elastic IP 주소가 할당되지 않으면 FAIL
-                result = "FAIL"
-                return {"status": False, "info": "Elastic IP 주소가 할당되어 있지 않습니다."}
-        except Exception as e:
-            result = str(e)
-
-        print(f"Elastic IP address assignment: {result}")
-
-    # EC2 인스턴스 상세 모니터링 확인
-    def ec2_instance_detailed_monitoring_enabled(self):
-        try:
-            response = self.ec2_client.describe_instance_attribute(
-                InstanceId=self.instance_id, Attribute='instanceMonitoring')
-            if response['InstanceMonitoring']['State'] == 'enabled':
-                # 상세 모니터링이 활성화되면 PASS
-                result = "PASS - EC2 instance detailed monitoring enabled."
-                return {"status": True, "info": "상세 모니터링이 활성화되어 있어 안전합니다."}
-            else:
-                # 상세 모니터링이 비활성화되면 FAIL
-                result = "FAIL - EC2 instance detailed monitoring not enabled."
-                return {"status": False, "info": "상세 모니터링이 비활성화 상태입니다."}
-        except Exception as e:
-            result = str(e)
-
-        print(f"Check EC2 instance detailed monitoring: {result}")
-
-    # EC2 인스턴스 IMDSv2 확인
-    def ec2_instance_imdsv2_enabled(self):
-        try:
-            response = self.ec2_client.describe_instance_attribute(
-                InstanceId=self.instance_id, Attribute='sriovNetSupport')
-            if response['SriovNetSupport']['Value'] == 'simple':
-                # IMDSv2가 활성화되면 PASS
-                result = "PASS - EC2 instance IMDSv2 enabled."
-                return {"status": True, "info": "IMDSv2가 활성화되어있어 안전합니다."}
-            else:
-                # IMDSv2가 비활성화되면 FAIL
-                result = "FAIL - EC2 instance IMDSv2 not enabled."
-                return {"status": False, "info": "IMDSv2가 활성화되어 있지 않습니다."}
-        except Exception as e:
-            result = str(e)
-
-        print(f"Check EC2 instance IMDSv2: {result}")
-
-    # EC2 인스턴스의 인터넷 통신 가능여부와 프로파일 설정 여부 확인
-    def ec2_instance_internet_facing_with_instance_profile(self):
-        try:
-            response = self.ec2_client.describe_instances(InstanceIds=[self.instance_id])
-            instance = response['Reservations'][0]['Instances'][0]
-            internet_accessible = instance['SourceDestCheck']
-            iam_profile = instance.get('IamInstanceProfile', None)
-
-            if internet_accessible and iam_profile:
-                # 인터넷 통신 가능하고 프로파일이 설정되면 PASS
-                result = "PASS"
-                return {"status": True, "info": " 인터넷 통신 가능하고 프로파일이 설정되어있어 안전합니다."}
-            else:
-                # 하나라도 설정 안되었으면 FAIL
-                result = "FAIL"
-                return {"status": False, "info": " 인터넷 통신 가능, 프로파일이 설정 조건을 충족하지 않습니다."}
-        except Exception as e:
-            result = str(e)
-
-        print(f"Check EC2 instance internet and profile: {result}")
-
+    
     def get_user_info(self, user_name):
         info = self.ec2_client.get_user(UserName=user_name)
         print(info)
@@ -366,11 +267,6 @@ def get_check_list():
         'ec2_instance_profile_attached',
         'ec2_instance_public_ip',
         'ec2_instance_secrets_user_data',
-        'ec2_elastic_ip_shodan',
-        'ec2_elastic_ip_unassgined',
-        'ec2_instance_detailed_monitoring_enabled',
-        'ec2_instance_imdsv2_enabled',
-        'ec2_instance_internet_facing_with_instance_profile'
         'ec2_ami_public',
         'ec2_ebs_snapshots_encrypted',
         'ec2_ebs_public_snapshot',
