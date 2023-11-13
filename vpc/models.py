@@ -28,27 +28,22 @@ class VpcEnum(Enum):
         obj.pass_criteria = pass_criteria
         return obj
 
-    
-
-    CHECK_VPC_FLOW_LOGS=(
-         'vpc_check_flow_logs',
-          IMPORTANCE.HIGH
+    CHECK_VPC_FLOW_LOGS = (
+        'vpc_check_flow_logs',
+        IMPORTANCE.HIGH
     )
 
-    CHECK_VPC_ENDPOINT_PERMISSIONS=(
-         'vpc_check_endpoint_permissions',
-         IMPORTANCE.HIGH      
+    CHECK_VPC_ENDPOINT_PERMISSIONS = (
+        'vpc_check_endpoint_permissions',
+        IMPORTANCE.HIGH
     )
 
-    CHECK_VPC_ENDPOINT_TRUSTED_ACCOUNT_WITH_ARN= 'vpc_check_endpoint_trusted_account_with_arn'
-    CHECK_VPC_ENDPOINT_WITH_TWO_ACCOUNT_IDS_ONE_TRUSTED_ONE_NOT='vpc_check_endpoint_with_two_account_ids_one_trusted_one_not'
-    CHECK_VPC_ROUTING_TABLE_PEERING='vpc_check_routing_table_peering'
-    CHECK_VPC_SUBNETS='vpc_check_subnets'
-    CHECK_VPC_SUBNET_AVAILABILITY_ZONE='vpc_check_subnet_availability_zone'
-    CHECK_ELBV2_LOGGING_ENABLED='elbv2_check_logging_enabled'
-
-
-            
+    CHECK_VPC_ENDPOINT_TRUSTED_ACCOUNT_WITH_ARN = 'vpc_check_endpoint_trusted_account_with_arn'
+    CHECK_VPC_ENDPOINT_WITH_TWO_ACCOUNT_IDS_ONE_TRUSTED_ONE_NOT = 'vpc_check_endpoint_with_two_account_ids_one_trusted_one_not'
+    CHECK_VPC_ROUTING_TABLE_PEERING = 'vpc_check_routing_table_peering'
+    CHECK_VPC_SUBNETS = 'vpc_check_subnets'
+    CHECK_VPC_SUBNET_AVAILABILITY_ZONE = 'vpc_check_subnet_availability_zone'
+    CHECK_ELBV2_LOGGING_ENABLED = 'elbv2_check_logging_enabled'
 
 
 class Vpc(models.Model):
@@ -75,4 +70,3 @@ class VpcList(models.Model):
 
     def __str__(self):
         return f"VpcList-{str(self.vpc_id)}"
-

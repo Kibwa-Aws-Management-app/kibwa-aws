@@ -1,13 +1,21 @@
 function start_home() {
     console.log('start_home');
     let main_content_title = document.querySelector('#main-content-title');
-    main_content_title.innerHTML = '<div style="display: flex;"><img class="big-logo" src="../img/home_logo.png" alt="home logo"><h1>HOME</h1></div>';
+    main_content_title.innerHTML = '<div style="display: flex;">' +
+        '<img class="big-logo" src="{% static \'img/home_logo.png\' %}" alt="home logo">' +
+        '<h1>HOME</h1>' +
+        '</div>';
 }
 
 function start_iam() {
     console.log('start_IAM');
     let main_content_title = document.querySelector('#main-content-title');
-    main_content_title.innerHTML = '<div style="display: flex;"><img class="big-logo" src="../img/iam_logo.png" alt="IAM logo"><h1>IAM</h1></div>';
+    main_content_title.innerHTML = '' +
+        '<div style="display: flex;">' +
+        '<img class="big-logo" src="{% static \'img/iam_logo.png\' %}" alt="IAM logo">' +
+        '<h1>IAM</h1>' +
+        '</div>';
+    window.location.href = "{% url 'iam/insepction' %}";
 }
 
 function start_ec2() {
@@ -32,4 +40,8 @@ function start_rds() {
     console.log('start_RDS');
     let main_content_title = document.querySelector('#main-content-title');
     main_content_title.innerHTML = '<div style="display: flex;"><img class="big-logo" src="../img/rds_logo.png" alt="RDS logo"><h1>RDS</h1></div>';
+}
+
+function check() {
+
 }

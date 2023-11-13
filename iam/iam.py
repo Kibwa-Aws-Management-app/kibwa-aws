@@ -271,7 +271,6 @@ def iam_boto3(key_id, secret, region):
             if callable(m):
                 buf = m()
                 buf['check_name'] = method[4:].upper()
-                # buf['check_name'] = str(method)
                 result.append(buf)
             else:
                 result.append({"check_name": None, "status": False, "info": "체크 함수를 실행시키는 과정에서 문제가 발생하였습니다."})

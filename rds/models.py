@@ -3,6 +3,7 @@ from enum import Enum
 from django.db import models
 from django_enum_choices.fields import EnumChoiceField
 from django_enumfield import enum
+
 from users.models import User
 
 

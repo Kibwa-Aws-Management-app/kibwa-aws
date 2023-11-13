@@ -25,28 +25,35 @@ def inspection(request):
 
         try:
             result = iam_boto3(aws_config.key_id, aws_config.access_key, aws_config.aws_region)
-            iam = save_iam(user, result)
-            result = save_iam_list(user, result, iam)
+            iam, result1 = save_iam(user, result)
+            result2 = save_iam_list(user, result, iam)
         except:
             return render(request, 'error.html')
-        return render(request, 'inspection/inspection.html', {'results': result})
+        return render(request, 'inspection/inspection.html',
+                      {'results': {'check': 'iam', 'result': result1, 'table': result2}})
     return redirect('users:index')
 
 
 def save_iam(user, result):
     passed_num = sum(r['status'] for r in result)
-
+    total_num = len(result)
     iam, created = Iam.objects.update_or_create(
         root_id=user,
         iam_id='iam_id',
         defaults={
             'last_modified': datetime.now(tz=timezone.utc),
             'passed_num': passed_num,
-            'total_num': len(result)
+            'total_num': total_num
         }
     )
 
-    return iam
+    if not created and iam.last_modified:
+        time_difference = datetime.now(tz=timezone.utc) - iam.last_modified
+        days_diff = time_difference.days
+    else:
+        days_diff = 0
+    up_result = {'m_time': days_diff, 'pass': passed_num, 'non_pass': total_num-passed_num}
+    return iam, up_result
 
 
 def save_iam_list(user, result, iam):
@@ -76,8 +83,3 @@ def save_iam_list(user, result, iam):
         obj['date'] = iam.last_modified.strftime('%Y.%m.%d.')
 
     return result
-
-
-
-
-

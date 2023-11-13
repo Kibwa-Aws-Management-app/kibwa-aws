@@ -23,18 +23,18 @@ def inspection(request):
 
         try:
             result = rds_boto3(aws_config.key_id, aws_config.access_key, aws_config.aws_region)
-            print(result)
-            rds = save_rds(user, result)
-            result = save_rds_list(user, result, rds)
+            rds, result1 = save_rds(user, result)
+            result2 = save_rds_list(user, result, rds)
         except:
             return render(request, 'error.html')
-        return render(request, 'inspection/inspection.html', {'results': result})
+        return render(request, 'inspection/inspection.html',
+                      {'results': {'check': 'rds', 'result': result1, 'table': result2}})
     return redirect('users:index')
 
 
 def save_rds(user, result):
     passed_num = sum(r['status'] for r in result)
-
+    total_num = len(result)
     rds, created = Rds.objects.update_or_create(
         root_id=user,
         rds_id='rds_id',
@@ -44,8 +44,13 @@ def save_rds(user, result):
             'total_num': len(result)
         }
     )
-
-    return rds
+    if not created and iam.last_modified:
+        time_difference = datetime.now(tz=timezone.utc) - iam.last_modified
+        days_diff = time_difference.days
+    else:
+        days_diff = 0
+    up_result = {'m_time': days_diff, 'pass': passed_num, 'non_pass': total_num-passed_num}
+    return rds, up_result
 
 
 def save_rds_list(user, result, rds):

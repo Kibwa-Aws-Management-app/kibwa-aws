@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+
+    <title>결과</title>
+    <link rel="stylesheet" href="{% static 'css/inspection.css' %}" type="text/css"/>
+</head>
+
+<!--{# 주의!!! label의 for, input의 name, id 변경 금지! #}-->
+<body>
+{% if user.is_authenticated %}
+<div class="header-container">
+    <h1>AWS 보안 점검 상세 내역 - {{ user }}</h1>
+</div>
+<table>
+    <tr>
+        <th>항목명</th>
+        <th>중요도</th>
+        <th>검사 일자</th>
+        <th>Status</th>
+        <th>Detail</th>
+    </tr>
+    {% for result in results %}
+    <tr>
+        <td>{{ result.check_name }}</td>
+        <td>{{ result.importance }}</td>
+        <td>{{ result.date }}</td>
+        <td>
+            {% if result.status == True %}
+            PASS
+            {% else %}
+            FAIL
+            {% endif %}
+        </td>
+        <td>{{ result.info }}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+<!--    <table>-->
+<!--        {% for result in results %} &lt;!&ndash; 이거 어디에 넣는거지??? &ndash;&gt;-->
+<!--        <tr>-->
+<!--            <th>항목명</th>-->
+<!--            <td>{{ result.check_name }}</td>-->
+<!--        </tr>-->
+<!--        <tr>-->
+<!--            <th>중요도</th>-->
+<!--            <td>{{ result.importance }}</td>-->
+<!--        </tr>-->
+<!--        <tr>-->
+<!--            <th>검사 일자</th>-->
+<!--            <td>{{ result.date }}</td>-->
+<!--        </tr>-->
+<!--        <tr>-->
+<!--            <th>Status</th>-->
+<!--            <td>-->
+<!--                {% if result.status == True %}-->
+<!--                PASS-->
+<!--                {% else %}-->
+<!--                FAIL-->
+<!--                {% endif %}-->
+<!--            </td>-->
+<!--        </tr>-->
+<!--        <tr>-->
+<!--            <th>Detail</th>-->
+<!--            <td>{{ result.info }}</td>-->
+<!--        </tr>-->
+<!--        {% endfor %}-->
+<!--    </table>-->
+
+<div class="button-container">
+    <button class="print-button" onclick="window.print()">Print</button>
+</div>
+{% else %}
+<h1>You are not logged in</h1>
+<p>You need to <a href="{% url 'users:login' %}">login</a> to view the inspection results.</p>
+{% endif %}
+</body>
+</html>

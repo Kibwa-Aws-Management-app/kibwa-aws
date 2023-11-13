@@ -1,7 +1,5 @@
 from enum import Enum
 
-
-
 from django.db import models
 from django_enumfield import enum
 from django_enum_choices.fields import EnumChoiceField
@@ -89,9 +87,14 @@ class S3Enum(Enum):
 
 
 class S3(models.Model):
-    # S3 모델을 정의합니다.
-    # 필요한 필드를 추가하세요.
-    pass
+    root_id = models.ForeignKey(User, on_delete=models.CASCADE, related_name="user_s3")
+    s3_id = models.CharField(max_length=255, primary_key=True)
+    last_modified = models.DateTimeField()
+    passed_num = models.IntegerField()
+    total_num = models.IntegerField()
+
+    def __str__(self):
+        return f"S3-{str(self.root_id)}-{str(self.s3_id)}"
 
 
 class S3List(models.Model):

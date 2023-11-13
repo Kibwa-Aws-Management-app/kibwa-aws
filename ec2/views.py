@@ -18,22 +18,24 @@ def inspection(request):
     
     if user.is_authenticated:
         aws_config = get_object_or_404(User, root_id=user)
-        ec2 = ec2_boto3(aws_config.key_id, aws_config.access_key, aws_config.aws_region)
-    
+
         # 액세스 키가 없을 때
         if aws_config.key_id == "":
             return redirect('users:access')
-
-        result = ec2_boto3(aws_config.key_id, aws_config.access_key, aws_config.aws_region)
-        ec2 = save_ec2(user, result)
-        result = save_ec2_list(user, result, ec2)
-        return render(request, 'inspection/inspection.html', {'results': result})
+        try:
+            result = ec2_boto3(aws_config.key_id, aws_config.access_key, aws_config.aws_region)
+            ec2, result1 = save_ec2(user, result)
+            result2 = save_ec2_list(user, result, ec2)
+        except:
+            return render(request, 'error.html')
+        return render(request, 'inspection/inspection.html',
+                      {'results': {'check': 'ec2', 'result': result1, 'table': result2}})
     return redirect('users:index')
 
 
 def save_ec2(user, result):
     passed_num = sum(r['status'] for r in result)
-
+    total_num = len(result)
     ec2, created = Ec2.objects.update_or_create(
         root_id=user,
         ec2_id='ec2_id',
@@ -43,8 +45,13 @@ def save_ec2(user, result):
             'total_num': len(result)
         }
     )
-
-    return ec2
+    if not created and iam.last_modified:
+        time_difference = datetime.now(tz=timezone.utc) - iam.last_modified
+        days_diff = time_difference.days
+    else:
+        days_diff = 0
+    up_result = {'m_time': days_diff, 'pass': passed_num, 'non_pass': total_num-passed_num}
+    return ec2, up_result
 
 
 def save_ec2_list(user, result, ec2):
