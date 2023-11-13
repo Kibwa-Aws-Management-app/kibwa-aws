@@ -185,19 +185,19 @@ class ec2:
     # EC2 인스턴스 상세 모니터링 확인
     def ec2_instance_detailed_monitoring_enabled(self):
 
-        try:
-            response = self.ec2_client.describe_instance_attribute(
-                InstanceId=self.instance_id, Attribute='instanceMonitoring')
-            if response['InstanceMonitoring']['State'] == 'enabled':
-                # 상세 모니터링이 활성화되면 PASS
-                result = "PASS - EC2 instance detailed monitoring enabled."
-                return {"status": True, "info": "상세 모니터링이 활성화되어 있어 안전합니다."}
-            else:
-                # 상세 모니터링이 비활성화되면 FAIL
-                result = "FAIL - EC2 instance detailed monitoring not enabled."
-                return {"status": False, "info": "상세 모니터링이 비활성화 상태입니다."}
-        except Exception as e:
-            result = str(e)
+        for id in self.instance_id:
+            try:
+                response = self.ec2_client.instance.monitor()['InstanceMonitorings']
+                if response['Monitoring'] == 'enabled':
+                    # 상세 모니터링이 활성화되면 PASS
+                    result = "PASS - EC2 instance detailed monitoring enabled."
+                    return {"status": True, "info": "상세 모니터링이 활성화되어 있어 안전합니다."}
+                else:
+                    # 상세 모니터링이 비활성화되면 FAIL
+                    result = "FAIL - EC2 instance detailed monitoring not enabled."
+                    return {"status": False, "info": "상세 모니터링이 비활성화 상태입니다."}
+            except Exception as e:
+                result = str(e)
 
         print(f"Check EC2 instance detailed monitoring: {result}")
 
