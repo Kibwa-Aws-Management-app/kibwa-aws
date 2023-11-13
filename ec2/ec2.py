@@ -2,6 +2,7 @@ import boto3
 from datetime import datetime, timedelta, timezone
 import shodan
 
+
 class ec2:
     def __init__(self, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_DEFAULT_REGION):
         self.ec2_client = boto3.client(
@@ -10,22 +11,23 @@ class ec2:
             aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
             region_name=AWS_DEFAULT_REGION
         )
-        self.instance_age_limit = 180 #원하는데로 변경
+        self.instance_age_limit = 180  # 원하는데로 변경
         self.ssm_client = boto3.client('ssm')
 
-        self.shodan_api_key='your_shodan_api_key'
-        self.instance_id=self.ec2_client.describe_instance_attribute()['InstanceId']
+        self.shodan_api_key = 'your_shodan_api_key'
+        self.instance_id = self.ec2_client.describe_instance_attribute()['InstanceId']
 
-    #은경 ######################
+    # 은경 ######################
     def ec2_instance_managed_by_ssm(self):
-        ec2_instances = self.ec2_client.describe_instances(Filters=[{'Name': 'instance-state-name', 'Values': ['running']}])
+        ec2_instances = self.ec2_client.describe_instances(
+            Filters=[{'Name': 'instance-state-name', 'Values': ['running']}])
         results = []
         for reservation in ec2_instances['Reservations']:
             for instance in reservation['Instances']:
                 instance_id = instance['InstanceId']
                 iam_profile = instance.get('IamInstanceProfile', {}).get('Arn', '')
                 ssm_managed = self.is_instance_managed_by_ssm(instance_id, iam_profile)
-                
+
                 if ssm_managed:
                     print(f"Instance {instance_id}: PASS - Managed by Systems Manager.")
                 else:
@@ -35,10 +37,11 @@ class ec2:
             print("[PASS] : Instance managed by Systems Manager.")
             return {"status": True, "info": "모든 인스턴스가 ssm에 관리되고 있어 안전합니다."}
         return {"status": False, "info": f"'{results}'인스턴스가 ssm에 관리되고 있지 않습니다."}
-    
+
     def is_instance_managed_by_ssm(self, instance_id, iam_profile_arn):
         try:
-            response = self.ssm_client.describe_instance_information(InstanceInformationFilterList=[{'key': 'InstanceIds', 'valueSet': [instance_id]}])
+            response = self.ssm_client.describe_instance_information(
+                InstanceInformationFilterList=[{'key': 'InstanceIds', 'valueSet': [instance_id]}])
             if response.get('InstanceInformationList'):
                 # Check if IAM profile and SSM role match
                 ssm_role = response['InstanceInformationList'][0].get('IamRole')
@@ -47,9 +50,10 @@ class ec2:
         except Exception as e:
             print(f"Error checking SSM management for instance {instance_id}: {str(e)}")
             return False
-        
+
     def ec2_instance_older_than_specific_days(self):
-        ec2_instances = self.ec2_client.describe_instances(Filters=[{'Name': 'instance-state-name', 'Values': ['running']}])
+        ec2_instances = self.ec2_client.describe_instances(
+            Filters=[{'Name': 'instance-state-name', 'Values': ['running']}])
         results = []
         current_time = datetime.now(timezone.utc)
 
@@ -61,8 +65,8 @@ class ec2:
                 age_limit = current_time - timedelta(days=self.instance_age_limit)
 
                 if launch_time < age_limit:
-                   print(f"[FAIL] : EC2 Instance {instance_id} is older than {self.instance_age_limit} days.")
-                   results.append(instance_id)
+                    print(f"[FAIL] : EC2 Instance {instance_id} is older than {self.instance_age_limit} days.")
+                    results.append(instance_id)
                 else:
                     print(f"[PASS] : EC2 Instance {instance_id} is not older than {self.instance_age_limit} days.")
 
@@ -72,7 +76,8 @@ class ec2:
         return {"status": False, "info": f"'{results}'인스턴스가 ssm에 관리되고 있지 않습니다."}
 
     def ec2_instance_profile_attached(self):
-        ec2_instances = self.ec2_client.describe_instances(Filters=[{'Name': 'instance-state-name', 'Values': ['running']}])
+        ec2_instances = self.ec2_client.describe_instances(
+            Filters=[{'Name': 'instance-state-name', 'Values': ['running']}])
         results = []
 
         for reservation in ec2_instances['Reservations']:
@@ -90,7 +95,8 @@ class ec2:
         return {"status": False, "info": f"'{results}'인스턴스가 ssm에 인스턴스 프로파일과 연결되어 있지 않습니다."}
 
     def ec2_instance_public_ip(self):
-        ec2_instances = self.ec2_client.describe_instances(Filters=[{'Name': 'instance-state-name', 'Values': ['running']}])
+        ec2_instances = self.ec2_client.describe_instances(
+            Filters=[{'Name': 'instance-state-name', 'Values': ['running']}])
         results = []
 
         for reservation in ec2_instances['Reservations']:
@@ -107,9 +113,10 @@ class ec2:
             print("[PASS] : Instance has public IP")
             return {"status": True, "info": "모든 인스턴스가 퍼블릭 IP를 보유하고 있어 안전합니다."}
         return {"status": False, "info": f"'{results}'인스턴스가 퍼블릭 IP를 보유하고 있지 않습니다."}
-    
+
     def ec2_instance_secrets_user_data(self):
-        ec2_instances = self.ec2_client.describe_instances(Filters=[{'Name': 'instance-state-name', 'Values': ['running']}])
+        ec2_instances = self.ec2_client.describe_instances(
+            Filters=[{'Name': 'instance-state-name', 'Values': ['running']}])
         sensitive_keywords = ["password", "secret", "private_key", "api_key"]  # 민감한 정보 키워드
         results = []
 
@@ -117,7 +124,7 @@ class ec2:
             for instance in reservation['Instances']:
                 instance_id = instance['InstanceId']
                 user_data = instance.get('UserData', '')
-                
+
                 # 사용자 데이터에 민감한 키워드가 있는지 검사
                 for keyword in sensitive_keywords:
                     if keyword in user_data:
@@ -133,14 +140,12 @@ class ec2:
         else:
             return {"status": False, "info": f"'{results}' 인스턴스의 사용자 데이터에 민감한 정보가 포함되어 있습니다."}
 
-
-    #은솔 
-    #########################################
+    # 은솔 ######################
     def ec2_elastic_ip_shodan(self):
-        
-        elastic_ips=self.ec2_client.describe_addresses()[['Addresses']]
+
+        elastic_ips = self.ec2_client.describe_addresses()[['Addresses']]
         for elastic_ip in elastic_ips['PublicIp']:
-            try:     
+            try:
                 # Shodan API 초기화
                 shodan_api = shodan.Shodan(self.shodan_api_key)
 
@@ -150,7 +155,7 @@ class ec2:
                 # Elastic IP 주소가 Shodan에 확인되면 
                 print("FAIL - Elastic IP address in Shodan.")
                 return {"status": False, "info": "Elastic IP 주소가 Shodan에 등록되어 있습니다."}
-                
+
             except shodan.APIERROR as e:
                 if e.value == "No information available for that IP.":
                     # Elastic IP 주소가 Shodan에 확인되지 않으면 PASS
@@ -160,9 +165,6 @@ class ec2:
                     # 다른 오류 처리
                     print(str(e))
                     return {"status": False, "info": "Elastic IP 주소가 Shodan에 등록되어 있습니다."}
-            
-        
-
 
     # Elastic IP 주소 할당 확인
     def ec2_elastic_ip_unassgined(self):
@@ -180,11 +182,9 @@ class ec2:
             result = str(e)
 
         print(f"Elastic IP address assignment: {result}")
-    
 
     # EC2 인스턴스 상세 모니터링 확인
     def ec2_instance_detailed_monitoring_enabled(self):
-
         try:
             response = self.ec2_client.describe_instance_attribute(
                 InstanceId=self.instance_id, Attribute='instanceMonitoring')
@@ -200,7 +200,6 @@ class ec2:
             result = str(e)
 
         print(f"Check EC2 instance detailed monitoring: {result}")
-
 
     # EC2 인스턴스 IMDSv2 확인
     def ec2_instance_imdsv2_enabled(self):
@@ -219,7 +218,6 @@ class ec2:
             result = str(e)
 
         print(f"Check EC2 instance IMDSv2: {result}")
-
 
     # EC2 인스턴스의 인터넷 통신 가능여부와 프로파일 설정 여부 확인
     def ec2_instance_internet_facing_with_instance_profile(self):
@@ -246,7 +244,7 @@ class ec2:
         info = self.ec2_client.get_user(UserName=user_name)
         print(info)
 
-    #지연 ###########################3
+    # 지연 ######################
     def ec2_ami_public(self):
         # AMI의 공개 여부 확인
         ami_images = self.ec2_client.describe_images(Owners=['self'])
@@ -280,10 +278,9 @@ class ec2:
         else:
             return {"status": True, "info": "모든 스냅샷이 암호화되어 있습니다."}
 
-        
     def ec2_ebs_public_snapshot(self):
         snapshots = self.ec2_client.describe_snapshots(OwnerIds=['self'])['Snapshots']
-        
+
         results = []
 
         for snapshot in snapshots:
@@ -305,8 +302,7 @@ class ec2:
             return {"status": True, "info": "모든 스냅샷이 비공개 상태입니다."}
         else:
             return {"status": False, "info": f"{results} 스냅샷이 공개 상태입니다."}
-    
-        
+
     def ec2_ebs_default_encryption(self):
         # 기본 볼륨 암호화 상태 확인
         volumes = self.ec2_client.describe_volumes()
@@ -323,7 +319,6 @@ class ec2:
         else:
             return {"status": True, "info": "모든 볼륨이 암호화되어 있습니다."}
 
-        
     def ec2_ebs_volume_encryption(self):
         # 볼륨 암호화 상태 확인
         volumes = self.ec2_client.describe_volumes()
@@ -340,7 +335,7 @@ class ec2:
         else:
             return {"status": True, "info": "모든 볼륨이 암호화되어 있습니다."}
 
-    
+
 def ec2_boto3(key_id, secret, region):
     ec2_instance = ec2(key_id, secret, region)  # 클래스의 인스턴스 생성
     print(ec2_instance.ec2_instance_managed_by_ssm())
@@ -362,7 +357,6 @@ def ec2_boto3(key_id, secret, region):
             result.append({"check_name": None, "status": False, "info": "AWS 연결에 문제가 발생하였습니다. 액세스 아이디와 키를 재설정 해주세요."})
     print("result")
     return result
-
 
 
 def get_check_list():

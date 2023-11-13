@@ -1,13 +1,19 @@
-{% extends "base.html" %}
+<!DOCTYPE html>
+{% load static %}
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 
-{# 주의!!! label의 for, input의 name, id 변경 금지! #}
-{% block content %}
-<!-- <head>
-    <title>로그인</title>
-    <link rel="stylesheet" href="../css/login.css">
-<body> -->
+    <title>회원가입</title>
+    <link rel="stylesheet" href="{% static 'css/login.css' %}" type="text/css"/>
+    <link rel="stylesheet" href="{% static 'css/index.css' %}" type="text/css" />
+</head>
+
+<!--{# 주의!!! label의 for, input의 name, id 변경 금지! #}-->
+<body>
 <div class="container my-3">
-    <!-- <link rel="stylesheet" href="../css/index.css"> -->
     <div style="text-align: center;">
         <h1 style="color: rgb(28, 50, 190);">AWS</h1>
         <h2>management</h2>
@@ -29,7 +35,7 @@
         </div>
     </form>
 
-    {# 로그인시 아이디 또는 비밀번호에 문제가 있을 경우 #}
+<!--    {# 로그인시 아이디 또는 비밀번호에 문제가 있을 경우 #}-->
     {% if form.errors %}
     <div class="error">
         <p>{{ form.errors }}</p>
@@ -37,5 +43,5 @@
     </div>
     {% endif %}
 </div>
-<!-- </body> -->
-{% endblock %}
+</body>
+</html>

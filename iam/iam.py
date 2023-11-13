@@ -224,16 +224,15 @@ class Iamboto3:
                 else:
                     print(f"[FAIL] : User '{username}' is not using MFA for AWS console access.")
                     rslts.append(username)
-                    #return {"status": False, "info": f"'{username}'가 mfa사용 X"}
+                    # return {"status": False, "info": f"'{username}'가 mfa사용 X"}
             else:
                 print(f"[FAIL] : User '{username}' does not have MFA information.")
                 rslts.append(username)
-                #return {"status": False, "info": f"'{username}'의 MFA 정보 없음"}
+                # return {"status": False, "info": f"'{username}'의 MFA 정보 없음"}
         if rslts:
             return {"status": False, "info": f"'{rslts}' 유저가 MFA를 사용하지 않습니다."}
         else:    
             return {"status": True, "info": "유저가 MFA를 사용중이므로 안전합니다."}                    
-                
 
     def iam_administrator_access_with_mfa(self):
         administrator_access_policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"
@@ -258,6 +257,7 @@ class Iamboto3:
             print("[PASS] : No users with administrator access and MFA disabled.")
             return {"status": True, "info": "관리자 권한과 MFA가 비활성화된 사용자가 없습니다."}
         return {"status": False, "info": f"'{results}'MFA가 비활성화된 상태에서 관리자 액세스 권한을 가집니다."}
+
 
 def iam_boto3(key_id, secret, region):
     iam = Iamboto3(key_id, secret, region)  # 클래스의 인스턴스 생성

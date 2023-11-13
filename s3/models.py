@@ -9,12 +9,12 @@ from django_enum_choices.fields import EnumChoiceField
 from users.models import User
 
 
-class IMPORTANCE(Enum):
+class IMPORTANCE(enum.Enum):
     HIGH = 0
     MID = 1
     LOW = 2
 
-    __default__ = IMPORTANCE.MID
+    __default__ = MID
 
 
 class S3Enum(Enum):

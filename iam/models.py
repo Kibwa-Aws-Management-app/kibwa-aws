@@ -1,9 +1,8 @@
 from enum import Enum
 
 from django.db import models
-from django_enumfield import enum
 from django_enum_choices.fields import EnumChoiceField
-
+from django_enumfield import enum
 from users.models import User
 
 
@@ -96,7 +95,6 @@ class IamList(models.Model):
     root_id = models.ForeignKey(User, on_delete=models.CASCADE, related_name="iam_list_records")
     iam_id = models.ForeignKey(Iam, on_delete=models.CASCADE, related_name="iam_list_entries")
     check_name = EnumChoiceField(IamEnum)
-    # check_name = models.CharField(max_length=255, choices=[(e.value, e.name) for e in IamEnum])
     check_code = models.CharField(max_length=255)
     importance = enum.EnumField(IMPORTANCE)
     status = models.BooleanField()

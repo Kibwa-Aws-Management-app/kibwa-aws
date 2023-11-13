@@ -2,17 +2,19 @@ from enum import Enum
 
 from django.db import models
 from django_enum_choices.fields import EnumChoiceField
-from users.models import User
 from django_enumfield import enum
+from users.models import User
 
-class IMPORTANCE(Enum):
+
+class IMPORTANCE(enum.Enum):
     HIGH = 0
     MID = 1
     LOW = 2
 
     __default__ = MID
 
-class rdsEnum(Enum):
+
+class RdsEnum(Enum):
     CHECK_RDS_SUBNET_AVAILABILITY = (
         'rds_check_subnet_availability',
         IMPORTANCE.HIGH,
@@ -39,10 +41,22 @@ class rdsEnum(Enum):
         "DBE만 데이터베이스 생성/삭제를 할 수 있도록 설정되어 있습니다."
     )
 
-class RDSList(models.Model):
+
+class Rds(models.Model):
+    root_id = models.ForeignKey(User, on_delete=models.CASCADE, related_name="user_rds")
+    rds_id = models.CharField(max_length=255, primary_key=True)
+    last_modified = models.DateTimeField()
+    passed_num = models.IntegerField()
+    total_num = models.IntegerField()
+
+    def __str__(self):
+        return f"RDS-{str(self.root_id)}-{str(self.rds_id)}"
+
+
+class RdsList(models.Model):
     root_id = models.ForeignKey(User, on_delete=models.CASCADE, related_name="rds_list_records")
-    rds_id = models.ForeignKey(RDS, on_delete=models.CASCADE, related_name="rds_list_entries")
-    check_name = EnumChoiceField(rdsEnum)
+    rds_id = models.ForeignKey(Rds, on_delete=models.CASCADE, related_name="rds_list_entries")
+    check_name = EnumChoiceField(RdsEnum)
     check_code = models.CharField(max_length=255)
     importance = enum.EnumField(IMPORTANCE)
     status = models.BooleanField()

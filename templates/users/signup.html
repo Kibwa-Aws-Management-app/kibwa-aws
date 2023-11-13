@@ -1,49 +1,53 @@
-{% extends "base.html" %}
-
-{# 주의!!! label의 for, input의 name, id 변경 금지! #}
-
+<!DOCTYPE html>
+{% load static %}
+<html lang="ko">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+
     <title>회원가입</title>
-    <link rel="stylesheet" href="../css/login.css">
+    <link rel="stylesheet" href="{% static 'css/login.css' %}" type="text/css"/>
+    <link rel="stylesheet" href="{% static 'css/index.css' %}" type="text/css" />
 </head>
 
+<!--{# 주의!!! label의 for, input의 name, id 변경 금지! #}-->
 <body>
-    {% block content %}
-    <div class="container my-3">
-        <form method="post" action="{% url 'users:signup' %}">
-            {% csrf_token %}
-            <div class="mb-3">
-                <label for="root_id">ID</label>
-                <input type="text" class="form-control" name="root_id" id="root_id"
-                    value="{{ form.root_id.value|default_if_none:'' }}">
-            </div>
-            <div class="mb-3">
-                <label for="password1">비밀번호</label>
-                <input type="password" class="form-control" name="password1" id="password1"
-                    value="{{ form.password1.value|default_if_none:'' }}">
-            </div>
-            <div class="mb-3">
-                <label for="password2">비밀번호 확인</label>
-                <input type="password" class="form-control" name="password2" id="password2"
-                    value="{{ form.password2.value|default_if_none:'' }}">
-            </div>
-            <div style="text-align: center; margin-top: 30px;">
-                <button type="submit" class="btn btn-primary">Submit</button>
-            </div>
-        </form>
-
-        {# 회원가입시 아이디 또는 비밀번호에 문제가 있을 경우 #}
-        {% if form.errors %}
-        <div class="error">
-            <p>회원가입 중 오류가 발생했습니다</p>
-            {% if form.root_id.errors %}
-            <p>이미 존재하는 아이디 입니다.</p>
-            {% elif form.password2.errors %}
-            <p>비밀번호는 [영문, 숫자, 특수문자]를 포함하여 최소 8 문자여야합니다.</p>
-            {% endif %}
+<div class="container my-3">
+    <form method="post" action="{% url 'users:signup' %}">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="root_id">ID</label>
+            <input type="text" class="form-control" name="root_id" id="root_id"
+                value="{{ form.root_id.value|default_if_none:'' }}">
         </div>
-        {% endif %}
+        <div class="mb-3">
+            <label for="password1">비밀번호</label>
+            <input type="password" class="form-control" name="password1" id="password1"
+                value="{{ form.password1.value|default_if_none:'' }}">
+        </div>
+        <div class="mb-3">
+            <label for="password2">비밀번호 확인</label>
+            <input type="password" class="form-control" name="password2" id="password2"
+                value="{{ form.password2.value|default_if_none:'' }}">
+        </div>
+        <div style="text-align: center; margin-top: 30px;">
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </div>
+    </form>
 
+    {# 회원가입시 아이디 또는 비밀번호에 문제가 있을 경우 #}
+    {% if form.errors %}
+    <div class="error">
+        <p>회원가입 중 오류가 발생했습니다</p>
+        {% if form.root_id.errors %}
+        <p>이미 존재하는 아이디 입니다.</p>
+        {% elif form.password2.errors %}
+        <p>비밀번호는 [영문, 숫자, 특수문자]를 포함하여 최소 8 문자여야합니다.</p>
+        {% endif %}
     </div>
-    {% endblock %}
+    {% endif %}
+
+</div>
 </body>
+</html>
