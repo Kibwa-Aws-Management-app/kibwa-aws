@@ -1,11 +1,17 @@
-{% extends "base.html" %}
+<!DOCTYPE html>
+{% load static %}
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 
-{% block static %}
-<link rel="stylesheet" href="css/inspection.css">
-{% endblock %}
+    <title>결과</title>
+    <link rel="stylesheet" href="{% static 'css/inspection.css' %}" type="text/css"/>
+</head>
 
-{% block content %}
-
+<!--{# 주의!!! label의 for, input의 name, id 변경 금지! #}-->
+<body>
 {% if user.is_authenticated %}
 <div class="header-container">
     <h1>AWS 보안 점검 상세 내역 - {{ user }}</h1>
@@ -73,4 +79,5 @@
 <h1>You are not logged in</h1>
 <p>You need to <a href="{% url 'users:login' %}">login</a> to view the inspection results.</p>
 {% endif %}
-{% endblock %}
+</body>
+</html>
