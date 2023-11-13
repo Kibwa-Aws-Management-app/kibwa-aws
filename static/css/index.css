@@ -252,8 +252,6 @@ table td:last-child {
    border-right: 0;
 }
 
-/* 테이블 안쪽에만 선이 있고 바깥쪽은 없도록 변경 */
-
 .table-container {
     margin-top: 20px;
     max-height: 85%; /* Set the maximum height for the table container */
