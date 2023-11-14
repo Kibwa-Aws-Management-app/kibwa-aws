@@ -56,8 +56,6 @@ class IamEnum(Enum):
         IMPORTANCE.MID,
         '룰 가정을 허용하지 않아야 안전합니다.'
     )
-    NO_EXPIRED_SERVER_CERTIFICATES_STORED = 'iam_no_expired_server_certificates_stored'
-    NO_ROOT_ACCESS_KEY = 'iam_no_root_access_key'
     PASSWORD_POLICY_EXPIRES_WITHIN_90_DAYS_OR_LESS = (
         'iam_password_policy_expires_passwords_within_90_days_or_less',
         IMPORTANCE.HIGH,
@@ -110,7 +108,6 @@ class IamEnum(Enum):
         IMPORTANCE.LOW,
         'Root 계정에서 MFA를 사용해야 안전합니다.'
     )
-    ROTATE_ACCESS_KEY_90_DAYS = 'iam_rotate_access_key_90_days'
     SECURITY_AUDIT_ROLE_CREATED = 'iam_securityaudit_role_created'
     SUPPORT_ROLE_CREATED = 'iam_support_role_created'
     USER_HARDWARE_MFA_ENABLED = (
@@ -128,8 +125,32 @@ class IamEnum(Enum):
         IMPORTANCE.HIGH,
         '사용자 정의 첨부 정책에는 관리자 권한이 없어야 안전합니다.'
     )
-    USER_NO_SETUP_INITIAL_ACCESS_KEY = 'iam_user_no_setup_initial_access_key'
-    USER_TWO_ACTIVE_ACCESS_KEYS = 'iam_user_two_active_access_keys'
+    NO_EXPIRED_SERVER_CERTIFICATES_STORED = (
+    'iam_no_expired_server_certificates_stored',
+    IMPORTANCE.HIGH,  
+    '만료된 서버 인증서를 보유하고 있지 않습니다.'
+    )
+    NO_ROOT_ACCESS_KEY = (
+        'iam_no_root_access_key',
+        IMPORTANCE.MID,  
+        '루트 계정에 액세스 키가 설정되어 있지 않습니다.'
+    )
+    ROTATE_ACCESS_KEY_90_DAYS = (
+        'iam_rotate_access_key_90_days',
+        IMPORTANCE.MID,  
+        '액세스 키가 90일 이상 갱신되지 않았습니다.'
+    )
+    USER_NO_SETUP_INITIAL_ACCESS_KEY = (
+        'iam_user_no_setup_initial_access_key',
+        IMPORTANCE.LOW, 
+        '초기 액세스 키를 설정하지 않았습니다.'
+    )
+    USER_TWO_ACTIVE_ACCESS_KEYS = (
+        'iam_user_two_active_access_keys',
+        IMPORTANCE.MID,  
+        '두 개 이상의 활성 액세스 키를 보유하고 있습니다.'
+    )
+            
 
 
 class Iam(models.Model):
