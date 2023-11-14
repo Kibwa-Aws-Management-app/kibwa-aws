@@ -362,6 +362,60 @@ class Iamboto3:
             except:
                 return {"status": False, "info": f"'{user['UserName']}'의 비밀번호에 제대로 설정되지 않았습니다."}
 
+    def iam_no_expired_server_certificates_stored(self):
+        for username in self.iam_list:
+            response = self.iam_client.list_signing_certificates(UserName=username)
+    
+            if 'Certificates' in response:
+                for certificate in response['Certificates']:
+                    if certificate['Status'] == 'Inactive':
+                        return {"status": False, "info": f"사용자 '{username}'는 만료된 서버 인증서를 보유하고 있습니다."}
+                return {"status": True, "info": f"사용자 '{username}'는 만료된 서버 인증서를 보유하고 있지 않습니다."}
+            else:
+                return {"status": True, "info": f"사용자 '{username}'는 서버 인증서를 보유하고 있지 않습니다."}
+    
+    def iam_no_root_access_key(self):
+        response = self.iam_client.list_access_keys(UserName='root')
+    
+        if 'AccessKeyMetadata' in response and len(response['AccessKeyMetadata']) == 0:
+            return {"status": True, "info": "루트 계정에 액세스 키가 설정되어 있지 않습니다."}
+        else:
+            return {"status": False, "info": "루트 계정에 액세스 키가 설정되어 있습니다."}
+    
+    def iam_rotate_access_key_90_days(self):
+        for username in self.iam_list:
+            access_keys = self.iam_client.list_access_keys(UserName=username)['AccessKeyMetadata']
+    
+            for key in access_keys:
+                access_key_id = key['AccessKeyId']
+                create_date = key['CreateDate']
+                inactive_days = (datetime.now(timezone.utc) - create_date).days
+    
+                if inactive_days >= 90:
+                    return {"status": False, "info": f"사용자 '{username}'의 액세스 키 {access_key_id}가 90일 이상 갱신되지 않았습니다."}
+                else:
+                    return {"status": True, "info": f"사용자 '{username}'의 액세스 키 {access_key_id}가 90일 이내에 갱신되었습니다."}
+    
+    def iam_user_no_setup_initial_access_key(self):
+        for username in self.iam_list:
+            access_keys = self.iam_client.list_access_keys(UserName=username)['AccessKeyMetadata']
+    
+            if len(access_keys) == 0:
+                return {"status": True, "info": f"사용자 '{username}'는 초기 액세스 키를 설정하지 않았습니다."}
+            else:
+                return {"status": False, "info": f"사용자 '{username}'는 초기 액세스 키를 설정하였습니다."}
+    
+    def iam_user_two_active_access_key(self):
+        for username in self.iam_list:
+            access_keys = self.iam_client.list_access_keys(UserName=username)['AccessKeyMetadata']
+            active_keys = [key for key in access_keys if key['Status'] == 'Active']
+    
+            if len(active_keys) >= 2:
+                return {"status": True, "info": f"사용자 '{username}'는 두 개 이상의 활성 액세스 키를 보유하고 있습니다."}
+            else:
+                return {"status": False, "info": f"사용자 '{username}'는 두 개 이상의 활성 액세스 키를 보유하고 있지 않습니다."}
+
+
 
 def iam_boto3(key_id, secret, region):
     iam = Iamboto3(key_id, secret, region)  # 클래스의 인스턴스 생성
@@ -404,4 +458,9 @@ def get_check_list():
         'iam_password_policy_number',
         'iam_password_policy_uppercase',
         'iam_password_policy_lowercase'
+        'iam_no_expired_server_certificates_stored',
+        'iam_no_root_access_key',
+        'iam_rotate_access_key_90_days',
+        'iam_user_no_setup_initial_access_key',
+        'iam_user_two_active_access_key'
     ]
