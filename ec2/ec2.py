@@ -236,7 +236,169 @@ class ec2:
         else:
             return {"status": True, "info": "모든 볼륨이 암호화되어 있습니다."}
 
+    #예은
+    def find_security_group_id(self):
+        try:
+            response = self.ec2_client.describe_security_groups(
+                Filters=[{'Name': 'group-name', 'Values': ['YourSecurityGroupName']}]
+            )
+            security_group_id = response['SecurityGroups'][0]['GroupId']
+            return security_group_id
+        except Exception as e:
+            print(f"에러 발생: {str(e)}")
+            return None
 
+    def find_network_acl_id(self):
+        try:
+            response = self.ec2_client.describe_network_acls(
+                Filters=[{'Name': 'tag:Name', 'Values': ['YourNetworkACLName']}]
+            )
+            network_acl_id = response['NetworkAcls'][0]['NetworkAclId']
+            return network_acl_id
+        except Exception as e:
+            print(f"에러 발생: {str(e)}")
+            return None
+
+    def ec2_networkacl_allow_ingress_tcp_port_22(self):
+        port_to_check = 22 
+        network_acl_id = 'acl-0c77e833ac4f2b620'
+
+        try:
+            entries = self.ec2_client.describe_network_acls(NetworkAclIds=[network_acl_id])['NetworkAcls'][0]['Entries']
+
+            allow_entries = [entry for entry in entries if entry.get('Protocol') == '6' and entry['PortRange']['From'] <= port_to_check <= entry['PortRange']['To'] and entry['RuleAction'] == 'allow' and not entry['Egress']]
+
+            if allow_entries:
+                print(f"[FAIL] : Inbound traffic on TCP port {port_to_check} is allowed in the Network ACL.")
+                return {"status": False, "info": f"TCP 포트 {port_to_check}에 대한 인바운드 트래픽이 허용되어 있습니다.", "entries": allow_entries}
+            else:
+                print(f"[PASS] : Inbound traffic on TCP port {port_to_check} is not allowed in the Network ACL.")
+                return {"status": True, "info": f"모든 인스턴스가 TCP 포트 {port_to_check}에 대한 인바운드 트래픽이 차단되어 있어 안전합니다."}
+
+        except Exception as e:
+            print(f"에러 발생: {str(e)}")
+            return {"status": False, "info": f"에러 발생: {str(e)}"}
+
+    def ec2_securitygroup_allow_ingress_port_20_21(self):
+        ports = [20, 21]
+
+        security_group_id = 'sg-07110b22609499db0'
+
+        try:
+            security_group_info = self.ec2_client.describe_security_groups(GroupIds=[security_group_id])['SecurityGroups']
+
+            if not security_group_info:
+                print(f"보안 그룹 ID '{security_group_id}'를 찾을 수 없습니다.")
+                return {"status": False, "info": f"보안 그룹 ID '{security_group_id}'를 찾을 수 없습니다."}
+
+            ingress_rules = security_group_info[0].get('IpPermissions', [])
+            allow_entries = [rule for rule in ingress_rules if rule['IpProtocol'] == 'tcp' and any([port_range['FromPort'] <= port <= port_range['ToPort'] for port_range in rule.get('PortRanges', [])])]
+
+            if any(allow_entries):
+                print(f"[FAIL] : TCP 포트 {', '.join(map(str, ports))}에 대한 인바운드 트래픽이 허용되어 있습니다.")
+                return {"status": False, "info": f"TCP 포트 {', '.join(map(str, ports))}에 대한 인바운드 트래픽이 허용되어 있습니다.", "entries": allow_entries}
+            else:
+                print(f"[PASS] : 인터넷에서 TCP 포트 {', '.join(map(str, ports))}로의 인바운드 트래픽이 차단되어 있어 안전합니다.")
+                return {"status": True, "info": f"인터넷에서 TCP 포트 {', '.join(map(str, ports))}로의 인바운드 트래픽이 차단되어 있어 안전합니다."}
+
+        except Exception as e:
+            print(f"에러 발생: {str(e)}")
+            return {"status": False, "info": f"에러 발생: {str(e)}"}
+
+    def ec2_securitygroup_allow_ingress_tcp_port_mysql(self):
+        mysql_port = 3306
+        security_group_id = 'sg-07110b22609499db0'
+
+        try:
+            security_group_info = self.ec2_client.describe_security_groups(GroupIds=[security_group_id])['SecurityGroups']
+
+            if not security_group_info:
+                print(f"보안 그룹 ID '{security_group_id}'를 찾을 수 없습니다.")
+                return {"status": True, "info": f"보안 그룹 ID '{security_group_id}'를 찾을 수 없습니다."}
+
+            ingress_rules = security_group_info[0].get('IpPermissions', [])
+            allow_entries = [rule for rule in ingress_rules if rule['IpProtocol'] == 'tcp' and any([port_range['FromPort'] <= mysql_port <= port_range['ToPort'] for port_range in rule.get('PortRanges', [])])]
+
+            if allow_entries:
+                print(f"[FAIL] : TCP 포트 {mysql_port}에 대한 인바운드 트래픽이 허용되어 있습니다.")
+                return {"status": False, "info": f"MySQL DB에 대한 인바운드 트래픽이 허용되어 있습니다.", "entries": allow_entries}
+            else:
+                print(f"[PASS] : 인터넷에서 TCP 포트 {mysql_port}로의 인바운드 트래픽이 차단되어 있어 안전합니다.")
+                return {"status": True, "info": f"인터넷에서 MySQL DB로의 인바운드 트래픽이 차단되어 있어 안전합니다."}
+
+        except Exception as e:
+            print(f"에러 발생: {str(e)}")
+            return {"status": False, "info": f"에러 발생: {str(e)}"}
+        
+    def ec2_securitygroup_allow_wide_open_public_ipv4(self):
+        public_ipv4_cidr = '0.0.0.0/0'
+        security_group_id = 'sg-07110b22609499db0'
+
+        try:
+            security_group_info = self.ec2_client.describe_security_groups(GroupIds=[security_group_id])['SecurityGroups']
+
+            if not security_group_info:
+                print(f"보안 그룹 ID '{security_group_id}'를 찾을 수 없습니다.")
+                return {"status": True, "info": f"보안 그룹 ID '{security_group_id}'를 찾을 수 없습니다."}
+
+            ingress_rules = security_group_info[0].get('IpPermissions', [])
+            allow_entries = [rule for rule in ingress_rules if rule['IpProtocol'] == '-1' and any([ip_range['CidrIp'] == public_ipv4_cidr for ip_range in rule.get('IpRanges', [])])]
+
+            if allow_entries:
+                print(f"[FAIL] : 퍼블릭 IPv4 주소 대역에 대한 인바운드 트래픽이 허용되어 있습니다.")
+                return {"status": False, "info": f"퍼블릭 IPv4 주소 대역에 대한 인바운드 트래픽이 허용되어 있습니다.", "entries": allow_entries}
+            else:
+                print(f"[PASS] : 퍼블릭 IPv4 주소 대역으로의 인바운드 트래픽이 차단되어 있어 안전합니다.")
+                return {"status": True, "info": f"퍼블릭 IPv4 주소 대역으로의 인바운드 트래픽이 차단되어 있어 안전합니다."}
+
+        except Exception as e:
+            print(f"에러 발생: {str(e)}")
+            return {"status": False, "info": f"에러 발생: {str(e)}"}
+        
+    def ec2_securitygroup_default_restrict_traffic(self):
+        security_group_id = 'sg-07110b22609499db0'
+
+        try:
+            security_group_info = self.ec2_client.describe_security_groups(GroupIds=[security_group_id])['SecurityGroups']
+
+            if not security_group_info:
+                print(f"보안 그룹 ID '{security_group_id}'를 찾을 수 없습니다.")
+                return {"status": True, "info": f"보안 그룹 ID '{security_group_id}'를 찾을 수 없습니다."}
+
+            ingress_rules = security_group_info[0].get('IpPermissions', [])
+            egress_rules = security_group_info[0].get('IpPermissionsEgress', [])
+
+            if not ingress_rules and not egress_rules:
+                print("[PASS] : 기본적으로 모든 인바운드, 아웃바운드 트래픽이 제한되어 있습니다.")
+                return {"status": True, "info": "기본적으로 모든 트래픽이 제한되어 있어 안전합니다."}
+            else:
+                print("[FAIL] : 모든 트래픽이 제한되지 않아 보안에 취약합니다.")
+                return {"status": False, "info": "모든 트래픽이 제한되지 않아 보안에 취약합니다."}
+
+        except Exception as e:
+            print(f"에러 발생: {str(e)}")
+            return {"status": False, "info": f"에러 발생: {str(e)}"}
+        
+    def ec2_securitygroup_not_used(self):
+        try:
+            all_security_groups = self.ec2_client.describe_security_groups()['SecurityGroups']
+
+            used_security_groups = {sg['GroupId'] for reservation in self.ec2_client.describe_instances()['Reservations']
+                                    for instance in reservation.get('Instances', [])
+                                    for sg in instance.get('SecurityGroups', [])}
+
+            unused_groups = [sg for sg in all_security_groups if sg['GroupId'] not in used_security_groups]
+
+            if not unused_groups:
+                print("[PASS] : T모든 보안 그룹이 사용 중입니다.")
+                return {"status": True, "info": "모든 보안 그룹이 사용 중입니다."}
+            else:
+                print(f"[FAIL] : 사용되지 않는 보안 그룹이 있습니다. : {unused_groups}")
+                return {"status": False, "info": f"사용되지 않는 보안 그룹이 있습니다."}
+        except Exception as e:
+            error_result = {"status": False, "info": f"에러 발생: {str(e)}"}
+            return error_result
+        
 def ec2_boto3(key_id, secret, region):
     ec2_instance = ec2(key_id, secret, region)  # 클래스의 인스턴스 생성
     print(ec2_instance.ec2_instance_managed_by_ssm())
@@ -271,5 +433,11 @@ def get_check_list():
         'ec2_ebs_snapshots_encrypted',
         'ec2_ebs_public_snapshot',
         'ec2_ebs_default_encryption',
-        'ec2_ebs_volume_encryption'
+        'ec2_ebs_volume_encryption',
+        'ec2_networkacl_allow_ingress_tcp_port_22',
+        'ec2_securitygroup_allow_ingress_port_20_21',
+        'ec2_securitygroup_allow_ingress_tcp_port_mysql',
+        'ec2_securitygroup_allow_wide_open_public_ipv4',
+        'ec2_securitygroup_default_restrict_traffic',
+        'ec2_securitygroup_not_used'
     ]
