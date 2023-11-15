@@ -15,6 +15,18 @@ class Iamboto3:
             aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
             region_name=AWS_DEFAULT_REGION
         )
+        # 새로운 안전한 비밀번호 정책
+        password_policy = {
+            'MaxPasswordAge': 90,  # 90일 이내에 만료되도록 요구
+            'PasswordReusePrevention': 24,  # 24회 이상 재사용 금지
+            'MinimumPasswordLength': 14,  # 최소 길이 14자 요구
+            'RequireSymbols': True,  # 특수 문자 사용 요구
+            'RequireNumbers': True,  # 숫자 사용 요구
+            'RequireUppercaseCharacters': True,  # 대문자 사용 요구
+            'RequireLowercaseCharacters': True,  # 소문자 사용 요구
+        }
+        # AWS IAM에서 비밀번호 정책을 업데이트
+        self.iam_client.update_account_password_policy(**password_policy)
         self.users = self.iam_client.list_users()['Users']
         self.iam_list = []
         for user in self.users:
@@ -146,7 +158,7 @@ class Iamboto3:
                 else:
                     print(f"[FAIL] : User {username}' is inactive.")
                     results.append(username)
-        
+
         if all(result.startswith("[PASS]") for result in results):
             return {"status": True, "info": "모든 사용자의 자격 증명은 90일 이내에 안전합니다."}
         else:
@@ -207,8 +219,8 @@ class Iamboto3:
                rslts.append(username)
         if rslts:
             return {"status": False, "info": f"'{rslts}'계정이 하드웨어 MFA를 사용하지 않습니다."}
-        else:    
-            return {"status": True, "info": "HW MFA를 사용중이므로 안전합니다."} 
+        else:
+            return {"status": True, "info": "HW MFA를 사용중이므로 안전합니다."}
 
     def iam_user_mfa_enabled(self):
         rslts = []
@@ -231,8 +243,8 @@ class Iamboto3:
                 # return {"status": False, "info": f"'{username}'의 MFA 정보 없음"}
         if rslts:
             return {"status": False, "info": f"'{rslts}' 유저가 MFA를 사용하지 않습니다."}
-        else:    
-            return {"status": True, "info": "유저가 MFA를 사용중이므로 안전합니다."}                    
+        else:
+            return {"status": True, "info": "유저가 MFA를 사용중이므로 안전합니다."}
 
     def iam_administrator_access_with_mfa(self):
         administrator_access_policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"
@@ -258,6 +270,98 @@ class Iamboto3:
             return {"status": True, "info": "관리자 권한과 MFA가 비활성화된 사용자가 없습니다."}
         return {"status": False, "info": f"'{results}'MFA가 비활성화된 상태에서 관리자 액세스 권한을 가집니다."}
 
+    def iam_password_policy_expires_passwords_within_90_days_or_less(self):
+        for user in self.users:
+            password_policy = self.iam_client.get_account_password_policy()['PasswordPolicy']
+            try:
+                if password_policy['MaxPasswordAge'] < 90:
+                    print(f"PASS - {user['UserName']} password expiration is set lower than 90 days")
+                    return {"status": True, "info": f"'{user['UserName']}'의 비밀번호 만료일이 90일 이내로 설정되었습니다."}
+                else:
+                    print(f"FAIL - {user['UserName']} password expiration is set greater than 90 days")
+                    return {"status": False, "info": f"'{user['UserName']}'의 비밀번호 만료일이 90일보다 크게 설정되었습니다."}
+            except:
+                return {"status": False, "info": f"'{user['UserName']}'의 비밀번호 만료일이 설정되지 않았습니다."}
+
+    def iam_password_policy_reuse_24(self):
+        for user in self.users:
+            password_policy = self.iam_client.get_account_password_policy()['PasswordPolicy']
+            try:
+                if password_policy['PasswordReusePrevention'] < 24:
+                    print(f"PASS - {user['UserName']} password policy reuse prevention is equal to 24.")
+                    return {"status": True, "info": f"'{user['UserName']}'의 비밀번호가 24회 보다 적게 재사용 되었습니다."}
+                else:
+                    print(f"FAIL - {user['UserName']} password policy reuse prevention is less than 24 or not set.")
+                    return {"status": False, "info": f"'{user['UserName']}'의 비밀번호가 24회 이상 재사용 되었습니다."}
+            except:
+                return {"status": False, "info": f"'{user['UserName']}'의 비밀번호 재사용 횟수가 잡히지 않습니다."}
+
+    def iam_password_policy_minimum_length_14(self):
+        for user in self.users:
+            password_policy = self.iam_client.get_account_password_policy()['PasswordPolicy']
+            try:
+                if password_policy['MinimumPasswordLength'] >= 14:
+                    print(f"PASS - {user['UserName']} password policy requires minimum length of 14 characters.")
+                    return {"status": True, "info": f"'{user['UserName']}'의 비밀번호 길이가 14자 이상입니다."}
+                else:
+                    print(f"FAIL- {user['UserName']} password policy does not require minimum length of 14 characters.")
+                    return {"status": False, "info": f"'{user['UserName']}'의 비밀번호 길이가 14자보다 짧습니다."}
+            except:
+                return {"status": False, "info": f"'{user['UserName']}'의 비밀번호가 제대로 설정되지 않았습니다."}
+
+    def iam_password_policy_symbol(self):
+        for user in self.users:
+            password_policy = self.iam_client.get_account_password_policy()['PasswordPolicy']
+            try:
+                if password_policy['RequireSymbols']:
+                    print(f"PASS - {user['UserName']} password policy requires at least one symbol.")
+                    return {"status": True, "info": f"'{user['UserName']}'의 비밀번호에 특수문자가 사용되었습니다."}
+                else:
+                    print(f"FAIL - {user['UserName']} password policy does not require at least one symbol.")
+                    return {"status": False, "info": f"'{user['UserName']}'의 비밀번호에 특수문자가 사용되지 않았습니다."}
+            except:
+                print(f"PASS - {user['UserName']} password policy requires at least one symbol.")
+                return {"status": False, "info": f"'{user['UserName']}'의 비밀번호가 제대로 설정되지 않았습니다."}
+
+    def iam_password_policy_number(self):
+        for user in self.users:
+            password_policy = self.iam_client.get_account_password_policy()['PasswordPolicy']
+            try:
+                if password_policy['RequireNumbers']:
+                    print(f"PASS - {user['UserName']} password policy requires at least one number.")
+                    return {"status": True, "info": f"'{user['UserName']}'의 비밀번호에 숫자가 사용되었습니다."}
+                else:
+                    print(f"FAIL - {user['UserName']} password policy does not require at least one number.")
+                    return {"status": False, "info": f"'{user['UserName']}'의 비밀번호에 숫자가 사용되지 않았습니다."}
+            except:
+                return {"status": False, "info": f"'{user['UserName']}'의 비밀번호에 제대로 설정되지 않았습니다."}
+
+    def iam_password_policy_uppercase(self):
+        for user in self.users:
+            password_policy = self.iam_client.get_account_password_policy()['PasswordPolicy']
+            try:
+                if password_policy['RequireUppercaseCharacters']:
+                    print(f"PASS - {user['UserName']} password policy require at least one uppercase letter.")
+                    return {"status": True, "info": f"'{user['UserName']}'의 비밀번호에 대문자가 포함되었습니다."}
+                else:
+                    print(f"FAIL - {user['UserName']} password policy does not requires at least one uppercase letter.")
+                    return {"status": False, "info": f"'{user['UserName']}'의 비밀번호에 대문자가 포함되지 않았습니다."}
+            except:
+                return {"status": False, "info": f"'{user['UserName']}'의 비밀번호에 제대로 설정되지 않았습니다."}
+
+    def iam_password_policy_lowercase(self):
+        for user in self.users:
+            password_policy = self.iam_client.get_account_password_policy()['PasswordPolicy']
+            try:
+                if password_policy['RequireLowercaseCharacters']:
+                    print(f"PASS - {user['UserName']} password policy requires at least one lowercase letter.")
+                    return {"status": True, "info": f"'{user['UserName']}'의 비밀번호에 소문자가 포함되었습니다."}
+                else:
+                    print(f"FAIL - {user['UserName']} password policy does not requires at least one lowercase letter.")
+                    return {"status": False, "info": f"'{user['UserName']}'의 비밀번호에 소문자가 포함되지 않았습니다."}
+            except:
+                return {"status": False, "info": f"'{user['UserName']}'의 비밀번호에 제대로 설정되지 않았습니다."}
+
 
 def iam_boto3(key_id, secret, region):
     iam = Iamboto3(key_id, secret, region)  # 클래스의 인스턴스 생성
@@ -269,6 +373,7 @@ def iam_boto3(key_id, secret, region):
         if hasattr(iam, method):
             m = getattr(iam, method)
             if callable(m):
+                print(m)
                 buf = m()
                 buf['check_name'] = method[4:].upper()
                 result.append(buf)
@@ -291,5 +396,12 @@ def get_check_list():
         'iam_user_mfa_enabled',
         'iam_user_hardware_mfa_enabled',
         'iam_root_mfa_enabled',
-        'iam_root_hardware_mfa_enabled'
+        'iam_root_hardware_mfa_enabled',
+        'iam_password_policy_expires_passwords_within_90_days_or_less',
+        'iam_password_policy_reuse_24',
+        'iam_password_policy_minimum_length_14',
+        'iam_password_policy_symbol',
+        'iam_password_policy_number',
+        'iam_password_policy_uppercase',
+        'iam_password_policy_lowercase'
     ]

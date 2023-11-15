@@ -44,8 +44,8 @@ def save_rds(user, result):
             'total_num': len(result)
         }
     )
-    if not created and iam.last_modified:
-        time_difference = datetime.now(tz=timezone.utc) - iam.last_modified
+    if not created and rds.last_modified:
+        time_difference = datetime.now(tz=timezone.utc) - rds.last_modified
         days_diff = time_difference.days
     else:
         days_diff = 0
