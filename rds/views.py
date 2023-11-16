@@ -1,7 +1,8 @@
 from datetime import datetime, timezone
 
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
+from django.views.decorators.http import require_http_methods
 from rds.models import Rds, RdsList, RdsEnum
 from rds.rds import rds_boto3
 from users.models import User
@@ -11,6 +12,7 @@ def index(request):
     return HttpResponse("Hello, world. You're at the rds index.")
 
 
+@require_http_methods(["GET", "POST"])
 def inspection(request):
     user = request.user
 
@@ -21,14 +23,19 @@ def inspection(request):
         if aws_config.key_id == "":
             return redirect('users:access')
 
-        try:
-            result = rds_boto3(aws_config.key_id, aws_config.access_key, aws_config.aws_region)
-            rds, result1 = save_rds(user, result)
-            result2 = save_rds_list(user, result, rds)
-        except:
-            return render(request, 'error.html')
-        return render(request, 'inspection/inspection.html',
-                      {'results': {'check': 'rds', 'result': result1, 'table': result2}})
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            try:
+                result = rds_boto3(aws_config.key_id, aws_config.access_key, aws_config.aws_region)
+                rds, result1 = save_rds(user, result)
+                print("result1")
+                print(result1)
+                result2 = save_rds_list(user, result, rds)
+                print("result2")
+                print(result2)
+                return JsonResponse({'results': {'check': 'rds', 'result': result1, 'table': result2}})
+            except Exception as e:
+                return JsonResponse({'error': str(e)}, status=500)
+        return render(request, 'rds/load.html')
     return redirect('users:index')
 
 
@@ -37,15 +44,15 @@ def save_rds(user, result):
     total_num = len(result)
     rds, created = Rds.objects.update_or_create(
         root_id=user,
-        rds_id='rds_id',
+        rds_id=str(user),
         defaults={
             'last_modified': datetime.now(tz=timezone.utc),
             'passed_num': passed_num,
             'total_num': len(result)
         }
     )
-    if not created and iam.last_modified:
-        time_difference = datetime.now(tz=timezone.utc) - iam.last_modified
+    if not created and rds.last_modified:
+        time_difference = datetime.now(tz=timezone.utc) - rds.last_modified
         days_diff = time_difference.days
     else:
         days_diff = 0
@@ -55,10 +62,12 @@ def save_rds(user, result):
 
 def save_rds_list(user, result, rds):
     rds_enum_dict = {e.name: e for e in RdsEnum}
+    print(rds_enum_dict)
+    new_result = []
 
     for obj in result:
         enum_object = rds_enum_dict.get(obj['check_name'])
-
+        print(enum_object)
         if enum_object is None:
             continue
 
@@ -78,5 +87,7 @@ def save_rds_list(user, result, rds):
 
         obj['importance'] = enum_object.importance.name
         obj['date'] = rds.last_modified.strftime('%Y.%m.%d.')
+        obj['caution'] = enum_object.pass_criteria
+    print(result)
 
     return result

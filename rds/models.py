@@ -3,7 +3,6 @@ from enum import Enum
 from django.db import models
 from django_enum_choices.fields import EnumChoiceField
 from django_enumfield import enum
-
 from users.models import User
 
 
@@ -16,28 +15,36 @@ class IMPORTANCE(enum.Enum):
 
 
 class RdsEnum(Enum):
+
+    def __new__(cls, value, importance=IMPORTANCE.MID, pass_criteria=''):
+        obj = object.__new__(cls)
+        obj._value_ = value
+        obj.importance = importance
+        obj.pass_criteria = pass_criteria
+        return obj
+
     CHECK_RDS_SUBNET_AVAILABILITY = (
-        'rds_check_subnet_availability',
+        'rds_check_rds_subnet_availability',
         IMPORTANCE.HIGH,
         "RDS 서브넷 그룹 내 불필요한 가용 영역이 존재하지 않습니다."
     )
     CHECK_RDS_ENCRYPTION = (
-        'rds_check_encryption',
+        'rds_check_rds_encryption',
         IMPORTANCE.MID,
         "RDS 데이터베이스 암호화가 비활성화되어 있습니다."
     )
     CHECK_RDS_LOGGING = (
-        'rds_check_logging',
+        'rds_check_rds_logging',
         IMPORTANCE.MID,
         "CloudWatch 로그 스트림으로 보관하고 있습니다."
     )
     CHECK_RDS_PUBLIC_ACCESS = (
-        'rds_check_public_access',
+        'rds_check_rds_public_access',
         IMPORTANCE.MID,
         "RDS에 대해 Public Access가 허용되어 있지 않습니다."
     )
     CHECK_DB_CREATION_DELETION_PRIVILEGES = (
-        'db_creation_deletion_privileges',
+        'rds_check_db_creation_deletion_privileges',
         IMPORTANCE.MID,
         "DBE만 데이터베이스 생성/삭제를 할 수 있도록 설정되어 있습니다."
     )

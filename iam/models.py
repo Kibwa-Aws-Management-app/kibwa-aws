@@ -37,10 +37,6 @@ class IamEnum(Enum):
         IMPORTANCE.HIGH,
         'Root 계정을 사용하지 않아야 안전합니다.'
     )
-    ATTACHED_POLICY_NO_ADMINISTRATIVE_PRIVILEGES = 'iam_attached_policy_no_administrative_privileges'
-    CHECK_SAML_PROVIDERS_STS = 'iam_check_saml_providers_sts'
-    CUSTOMER_ATTACHED_POLICY_NO_ADMINISTRATIVE_PRIVILEGES = 'iam_customer_attached_policy_no_administrative_privileges'
-    CUSTOMER_UNATTACHED_POLICY_NO_ADMINISTRATIVE_PRIVILEGES = 'iam_customer_unattached_policy_no_administrative_privileges'
     CHECK_DISABLE_DAYS_CREDENTIALS = (
         'iam_check_disable_days_credentials',
         IMPORTANCE.MID,
@@ -56,8 +52,6 @@ class IamEnum(Enum):
         IMPORTANCE.MID,
         '룰 가정을 허용하지 않아야 안전합니다.'
     )
-    NO_EXPIRED_SERVER_CERTIFICATES_STORED = 'iam_no_expired_server_certificates_stored'
-    NO_ROOT_ACCESS_KEY = 'iam_no_root_access_key'
     PASSWORD_POLICY_EXPIRES_WITHIN_90_DAYS_OR_LESS = (
         'iam_password_policy_expires_passwords_within_90_days_or_less',
         IMPORTANCE.HIGH,
@@ -93,13 +87,6 @@ class IamEnum(Enum):
         IMPORTANCE.HIGH,
         '비밀번호에는 대문자가 포함되어야 안전합니다.'
     )
-    POLICY_ALLOWS_PRIVILEGE_ESCALATION = 'iam_policy_allows_privilege_escalation'
-    POLICY_ATTACHED_ONLY_TO_GROUP_OR_ROLES = 'iam_policy_attached_only_to_group_or_roles'
-    POLICY_NO_FULL_ACCESS_TO_CLOUDTRAIL = 'iam_policy_no_full_access_to_cloudtrail'
-    POLICY_NO_FULL_ACCESS_TO_KMS = 'iam_policy_no_full_access_to_kms'
-    ROLE_ADMINISTRATOR_ACCESS_POLICY = 'iam_role_administratoraccess_policy'
-    ROLE_CROSS_ACCOUNT_READ_ONLY_ACCESS_POLICY = 'iam_role_cross_account_readonlyaccess_policy'
-    ROLE_SERVICE_CONFUSED_DEPUTY_PREVENTION = 'iam_role_cross_service_confused_deputy_prevention'
     ROOT_HARDWARE_MFA_ENABLED = (
         'iam_root_hardware_mfa_enabled',
         IMPORTANCE.LOW,
@@ -110,9 +97,6 @@ class IamEnum(Enum):
         IMPORTANCE.LOW,
         'Root 계정에서 MFA를 사용해야 안전합니다.'
     )
-    ROTATE_ACCESS_KEY_90_DAYS = 'iam_rotate_access_key_90_days'
-    SECURITY_AUDIT_ROLE_CREATED = 'iam_securityaudit_role_created'
-    SUPPORT_ROLE_CREATED = 'iam_support_role_created'
     USER_HARDWARE_MFA_ENABLED = (
         'iam_user_hardware_mfa_enabled',
         IMPORTANCE.MID,
@@ -128,8 +112,6 @@ class IamEnum(Enum):
         IMPORTANCE.HIGH,
         '사용자 정의 첨부 정책에는 관리자 권한이 없어야 안전합니다.'
     )
-    USER_NO_SETUP_INITIAL_ACCESS_KEY = 'iam_user_no_setup_initial_access_key'
-    USER_TWO_ACTIVE_ACCESS_KEYS = 'iam_user_two_active_access_keys'
 
 
 class Iam(models.Model):

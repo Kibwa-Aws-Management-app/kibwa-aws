@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>RDS AWS 점검 결과</title>
+    <style>
+        .loading {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            z-index: 1;
+            width: 150px;
+            height: 150px;
+            margin: -75px 0 0 -75px;
+            border: 16px solid #f3f3f3;
+            border-radius: 50%;
+            border-top: 16px solid #FF9900;
+            width: 120px;
+            height: 120px;
+            -webkit-animation: spin 2s linear infinite;
+            animation: spin 2s linear infinite;
+        }
+
+
+        @-webkit-keyframes spin {
+            0% {
+                -webkit-transform: rotate(0deg);
+            }
+            100% {
+                -webkit-transform: rotate(360deg);
+            }
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+
+    <script type="text/javascript">
+        var staticBaseUrl = "{% static '' %}";
+    </script>
+    <!-- Include jQuery -->
+    <script src="{% static 'js/index.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'css/index.css' %}">
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="{% static 'js/rds/load.js' %}"></script>
+</head>
+<body>
+<div class="loader">
+    <p style="font-size: 40px;
+                color: #333;
+                text-align: center;
+                padding-top: 100px">
+        AWS 상태를 점검 중입니다. <br> 잠시만 기다려 주세요 😊
+    </p>
+    <div class="loading"></div>
+</div>
+
+<div class="container" style="display:none;">
+    <div id="home" class="home">
+        <div class="side-bar">
+            <div class="side-bar-title">
+                <h1 style="margin: 20px;">AWS<br>Management<br>App</h1>
+            </div>
+            <div class="side-bar-menu">
+                <ul>
+                    <div class="menu" style="margin-bottom: 100px;" onclick="location.href='http://127.0.0.1:8000/'">
+                        <img class="logo" src="{% static 'img/home_logo.png' %}" alt="home logo">
+                        HOME
+                    </div>
+                    <div class="menu" onclick="location.href='http://127.0.0.1:8000/iam/inspection/'">
+                        <img class="logo" src="{% static 'img/iam_logo.png' %}" alt="iam logo">
+                        IAM
+                    </div>
+                    <div class="menu" onclick="location.href='http://127.0.0.1:8000/ec2/inspection/'">
+                        <img class="logo" src="{% static 'img/ec2_logo.png' %}" alt="ec2 logo">
+                        EC2
+                    </div>
+                    <div class="menu" onclick="location.href='http://127.0.0.1:8000/vpc/inspection/'">
+                        <img class="logo" src="{% static 'img/vpc_logo.png' %}" alt="vpc logo">
+                        VPC
+                    </div>
+                    <div class="menu" onclick="location.href='http://127.0.0.1:8000/s3/inspection/'">
+                        <img class="logo" src="{% static 'img/s3_logo.png' %}" alt="s3 logo">
+                        S3
+                    </div>
+                    <div class="menu" onclick="location.href='http://127.0.0.1:8000/rds/inspection/'">
+                        <img class="logo" src="{% static 'img/rds_logo.png' %}" alt="rds logo">
+                        RDS
+                    </div>
+                </ul>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="main-content-title" id="main-content-title">
+                <div style="display: flex;">
+                    <div class="main-logo"></div>
+                    <h1>CHECK-TYPE</h1>
+                </div>
+            </div>
+            <div class="main-content-body">
+                <div class="short-panel">
+                    <div class="short-checklist">
+                        <div class="icon-circle">
+                            <img class="short-logo" src="{% static 'img/check.png' %}" alt="check" style="margin-top: 5px;">
+                        </div>
+                        <div>
+                            <div style="font-size: 15px; font-weight: bold; color: grey;">통과된 점검</div>
+                            <div style="font-size: 25px; font-weight: bold;">- 개</div>
+                        </div>
+                    </div>
+                    <div class="short-checklist">
+                        <div class="icon-circle" style="background-color: rgba(255, 0, 0, 0.5);">
+                            <img class="short-logo" src="{% static 'img/toolkit_icon.png'%}" alt="check">
+                        </div>
+                        <div>
+                            <div style="font-size: 15px; font-weight: bold; color: grey;">해결해야 할 문제점</div>
+                            <div style="font-size: 25px; font-weight: bold;">- 개</div>
+                        </div>
+                    </div>
+                    <div class="short-checklist">
+                        <div class="icon-circle">
+                            <img class="short-logo" src="{% static 'img/clock_icon.png' %}" alt="check">
+                        </div>
+                        <div>
+                            <div style="font-size: 15px; font-weight: bold; color: grey;">마지막 점검일로부터</div>
+                            <div style="font-size: 25px; font-weight: bold;">- 일 전</div>
+                            <div style="display: flex;">
+                                <div>
+                                    점검 필요!
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="main-checklist">
+                    <div style="display: flex;">
+                        <div>
+                            <div style="font-size: 20px; font-weight: bold; margin-bottom: 5px;">
+                                보안 점검 현황
+                            </div>
+                            <div style="color: red;">
+                                보안 위험 요소를 확인하세요!
+                            </div>
+                        </div>
+                        <div>
+                        </div>
+                    </div>
+
+                    <div class="table-container">
+                    <table class="security-table" id="iam-table">
+                        <!-- 5x9 테이블 항목명 중요도 항목코드 검사일자 status -->
+                        <tr>
+                            <th style="width: 150px; ">항목명</th>
+                            <th class="second-child" style="width: 60px;">중요도</th>
+                            <th>검사일자</th>
+                            <th>status</th>
+                            <th>Detail</th>
+                        </tr>
+                    </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

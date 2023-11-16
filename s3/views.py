@@ -1,5 +1,8 @@
-from django.http import HttpResponse
+from datetime import datetime, timezone
+
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
+from django.views.decorators.http import require_http_methods
 from s3.models import S3, S3List, S3Enum
 from s3.s3 import s3_boto3
 from users.models import User
@@ -9,6 +12,7 @@ def index(request):
     return HttpResponse("Hello, world. You're at the s3 index.")
 
 
+@require_http_methods(["GET", "POST"])
 def inspection(request):
     user = request.user
 
@@ -19,14 +23,16 @@ def inspection(request):
         if aws_config.key_id == "":
             return redirect('users:access')
 
-        try:
-            result = s3_boto3(aws_config.key_id, aws_config.access_key, aws_config.aws_region)
-            s3, result1 = save_s3(user, result)
-            result2 = save_s3_list(user, result, s3)
-        except:
-            return render(request, 'error.html')
-        return render(request, 'inspection/inspection.html',
-                      {'results': {'check': 's3', 'result': result1, 'table': result2}})
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+
+            try:
+                result = s3_boto3(aws_config.key_id, aws_config.access_key, aws_config.aws_region)
+                s3, result1 = save_s3(user, result)
+                result2 = save_s3_list(user, result, s3)
+                return JsonResponse({'results': {'check': 's3', 'result': result1, 'table': result2}})
+            except Exception as e:
+                return JsonResponse({'error': str(e)}, status=500)
+        return render(request, 's3/load.html')
     return redirect('users:index')
 
 
@@ -35,15 +41,15 @@ def save_s3(user, result):
     total_num = len(result)
     s3, created = S3.objects.update_or_create(
         root_id=user,
-        s3_id='s3_id',
+        s3_id=str(user),
         defaults={
             'last_modified': datetime.now(tz=timezone.utc),
             'passed_num': passed_num,
             'total_num': len(result)
         }
     )
-    if not created and iam.last_modified:
-        time_difference = datetime.now(tz=timezone.utc) - iam.last_modified
+    if not created and s3.last_modified:
+        time_difference = datetime.now(tz=timezone.utc) - s3.last_modified
         days_diff = time_difference.days
     else:
         days_diff = 0
@@ -76,5 +82,6 @@ def save_s3_list(user, result, s3):
 
         obj['importance'] = enum_object.importance.name
         obj['date'] = s3.last_modified.strftime('%Y.%m.%d.')
+        obj['caution'] = enum_object.pass_criteria
 
     return result

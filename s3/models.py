@@ -16,38 +16,41 @@ class IMPORTANCE(enum.Enum):
 
 
 class S3Enum(Enum):
-
-    CHECK_S3_PUBLIC_ACCESS_BLOCK=(
+    CHECK_S3_PUBLIC_ACCESS_BLOCK = (
         's3_check_public_access_block',
-        IMPORTANCE.HIGH
+        IMPORTANCE.HIGH,
+        '주의 사항'
     )
-    
-    CHECK_S3_BUCKET_PUBLIC_ACCESS=(
+
+    CHECK_S3_BUCKET_PUBLIC_ACCESS = (
         's3_check_bucket_public_access',
-        IMPORTANCE.HIGH
+        IMPORTANCE.HIGH,
+        '주의 사항'
     )
 
-    CHECK_ACCOUNT_LEVEL_S3_PUBLIC_ACCESS_BLOCK=(
+    CHECK_ACCOUNT_LEVEL_S3_PUBLIC_ACCESS_BLOCK = (
         's3_check_account_level_public_access_block',
-        IMPORTANCE.MID
+        IMPORTANCE.MID,
+        '주의 사항'
     )
 
-    CHECK_S3_BUCKET_USE_ACL=(
+    CHECK_S3_BUCKET_USE_ACL = (
         's3_check_bucket_use_acl',
-        IMPORTANCE.HIGH
-        
+        IMPORTANCE.HIGH,
+        '주의 사항'
     )
 
-    CHECK_S3_BUCKET_ENCRYPTION=(
+    CHECK_S3_BUCKET_ENCRYPTION = (
         's3_check_bucket_encryption',
-        IMPORTANCE.MID
+        IMPORTANCE.MID,
+        '주의 사항'
     )
 
-    CHECK_S3_BUCKET_MFA_DELETE=(
+    CHECK_S3_BUCKET_MFA_DELETE = (
         's3_check_bucket_mfa_delete',
-        IMPORTANCE.MID
+        IMPORTANCE.MID,
+        '주의 사항'
     )
-
 
     CHECK_S3_BUCKET_OBJECT_LOCK = (
         's3_check_bucket_object_lock',
@@ -110,4 +113,3 @@ class S3List(models.Model):
 
     def __str__(self):
         return f"S3List-{str(self.s3_id)}"
-

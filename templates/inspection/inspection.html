@@ -51,7 +51,7 @@
                 <div style="display: flex;">
                     <!-- FIXME -->
                     {% with 'img/'|add:results.check|add:'_logo.png' as logo_src %}
-                    <img class="logo" src="{% static logo_src %}" alt="iam logo">
+                    <img class="logo" src="{% static 'img/iam_logo.png' %}" alt="iam logo">
                     {% endwith %}
                     <h1>IAM</h1>
                 </div>
@@ -151,9 +151,9 @@
                             <td>{{ result.date }}</td>
                             <td>
                                 {% if result.status == True %}
-                                PASS
+                                <p style="color: green;">PASS</p>
                                 {% else %}
-                                FAIL
+                                <p style="color: darkred;"> FAIL</p>
                                 {% endif %}
                             </td>
                             <td>{{ result.info }}</td>
