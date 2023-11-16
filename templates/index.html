@@ -30,6 +30,40 @@
         button:hover {
             background-color: #0069d9;
         }
+
+
+        .service-link-container {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 30px;
+        padding: 30px;
+        }
+
+        .service-link {
+        padding: 50px; /* Increased padding for a much larger size */
+        border-radius: 25px; /* Slightly larger border radius for aesthetic */
+        color: white;
+        text-decoration: none;
+        text-align: center;
+        vertical-align: middle;
+        font-size: 30px; /* Larger font size */
+        box-shadow: 0 8px 15px rgba(0,0,0,0.3); /* More pronounced shadow */
+        transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .service-link:hover {
+        transform: translateY(-4px); /* More noticeable lift effect on hover */
+        box-shadow: 0 12px 20px rgba(0,0,0,0.4); /* Even more pronounced shadow on hover */
+        }
+
+        .iam { background-color: #ff3b30; }
+        .s3 { background-color: #4cd964; }
+        .vpc { background-color: #5856d6; }
+        .ec2 { background-color: #ff9500; }
+        .rds { background-color: #007aff; }
+
+    
+        
     </style>
 </head>
 
@@ -71,6 +105,21 @@
         {% if user.is_authenticated %}
             {% if user.access_key %}
             <div class="first-page">
+
+                <!--버튼 구현 -->
+                <div>
+                 
+                {% if user.access_key %}
+                     <div class="service-link-container">
+                            <a href="{% url 'iam:iam' %}" class="service-link iam">IAM</a>
+                            <a href="{% url 's3:s3' %}" class="service-link s3">S3</a>
+                            <a href="{% url 'vpc:vpc' %}" class="service-link vpc">VPC</a>
+                            <a href="{% url 'ec2:ec2' %}" class="service-link ec2">EC2</a>
+                            <a href="{% url 'rds:rds' %}" class="service-link rds">RDS</a>
+                      </div>
+                    {% endif %}
+                </div>
+                
             <button onclick="location.href='http://127.0.0.1:8000/users/logout/'" style="background-color: #ffffff; color: #007bff;">로그아웃</button>
     <!--        {#  AWS 액세스 키를 입력받을 폼  #}-->
             <button onclick="location.href='http://127.0.0.1:8000/users/access/'" style="background-color: #007bff;">액세스 키 등록</button>
