@@ -199,48 +199,51 @@ class ec2:
             except Exception as e:
                 result = str(e)
 
-        print(f"Check EC2 instance detailed monitoring: {result}")
+            print(f"Check EC2 instance detailed monitoring: {result}")
 
 
     # EC2 인스턴스 IMDSv2 확인
     def ec2_instance_imdsv2_enabled(self):
-        try:
-            response = self.ec2_client.describe_instance_attribute(
-                InstanceId=self.instance_id, Attribute='sriovNetSupport')
-            if response['SriovNetSupport']['Value'] == 'simple':
-                # IMDSv2가 활성화되면 PASS
-                result = "PASS - EC2 instance IMDSv2 enabled."
-                return {"status": True, "info": "IMDSv2가 활성화되어있어 안전합니다."}
-            else:
-                # IMDSv2가 비활성화되면 FAIL
-                result = "FAIL - EC2 instance IMDSv2 not enabled."
-                return {"status": False, "info": "IMDSv2가 활성화되어 있지 않습니다."}
-        except Exception as e:
-            result = str(e)
 
-        print(f"Check EC2 instance IMDSv2: {result}")
+        for instance_id in self.instance_id:
+            try:
+                response = self.ec2_client.describe_instance_attribute(Attribute='sriovNetSupport',
+                    InstanceId=instance_id )
+                if response['SriovNetSupport']['Value'] == 'simple':
+                    # IMDSv2가 활성화되면 PASS
+                    result = "PASS - EC2 instance IMDSv2 enabled."
+                    return {"status": True, "info": "IMDSv2가 활성화되어있어 안전합니다."}
+                else:
+                    # IMDSv2가 비활성화되면 FAIL
+                    result = "FAIL - EC2 instance IMDSv2 not enabled."
+                    return {"status": False, "info": "IMDSv2가 활성화되어 있지 않습니다."}
+            except Exception as e:
+                result = str(e)
+
+            print(f"Check EC2 instance IMDSv2: {result}")
 
 
     # EC2 인스턴스의 인터넷 통신 가능여부와 프로파일 설정 여부 확인
     def ec2_instance_internet_facing_with_instance_profile(self):
-        try:
-            response = self.ec2_client.describe_instances(InstanceIds=[self.instance_id])
-            instance = response['Reservations'][0]['Instances'][0]
-            internet_accessible = instance['SourceDestCheck']
-            iam_profile = instance.get('IamInstanceProfile', None)
+        for instance_id in self.instance_id:
+            try:
+                response = self.ec2_client.describe_instances(InstanceIds=[instance_id])
+                instance = response['Reservations'][0]['Instances'][0]
+                internet_accessible = instance['SourceDestCheck']
+                iam_profile = instance.get('IamInstanceProfile', None)
 
-            if internet_accessible and iam_profile:
-                # 인터넷 통신 가능하고 프로파일이 설정되면 PASS
-                result = "PASS"
-                return {"status": True, "info": " 인터넷 통신 가능하고 프로파일이 설정되어있어 안전합니다."}
-            else:
-                # 하나라도 설정 안되었으면 FAIL
-                result = "FAIL"
-                return {"status": False, "info": " 인터넷 통신 가능, 프로파일이 설정 조건을 충족하지 않습니다."}
-        except Exception as e:
-            result = str(e)
+                if internet_accessible and iam_profile:
+                    # 인터넷 통신 가능하고 프로파일이 설정되면 PASS
+                    result = "PASS"
+                    return {"status": True, "info": " 인터넷 통신 가능하고 프로파일이 설정되어있어 안전합니다."}
+                else:
+                    # 하나라도 설정 안되었으면 FAIL
+                    result = "FAIL"
+                    return {"status": False, "info": " 인터넷 통신 가능, 프로파일이 설정 조건을 충족하지 않습니다."}
+            except Exception as e:
+                result = str(e)
 
-        print(f"Check EC2 instance internet and profile: {result}")
+            print(f"Check EC2 instance internet and profile: {result}")
 
     def get_user_info(self, user_name):
         info = self.ec2_client.get_user(UserName=user_name)
