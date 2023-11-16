@@ -59,6 +59,7 @@ def save_s3(user, result):
 
 def save_s3_list(user, result, s3):
     s3_enum_dict = {e.name: e for e in S3Enum}
+    new_result = []
 
     for obj in result:
         enum_object = s3_enum_dict.get(obj['check_name'])
@@ -83,5 +84,6 @@ def save_s3_list(user, result, s3):
         obj['importance'] = enum_object.importance.name
         obj['date'] = s3.last_modified.strftime('%Y.%m.%d.')
         obj['caution'] = enum_object.pass_criteria
+        new_result.append(obj)
 
-    return result
+    return new_result

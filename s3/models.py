@@ -3,7 +3,6 @@ from enum import Enum
 from django.db import models
 from django_enumfield import enum
 from django_enum_choices.fields import EnumChoiceField
-
 from users.models import User
 
 
@@ -16,40 +15,48 @@ class IMPORTANCE(enum.Enum):
 
 
 class S3Enum(Enum):
+
+    def __new__(cls, value, importance=IMPORTANCE.MID, pass_criteria=''):
+        obj = object.__new__(cls)
+        obj._value_ = value
+        obj.importance = importance
+        obj.pass_criteria = pass_criteria
+        return obj
+
     CHECK_S3_PUBLIC_ACCESS_BLOCK = (
         's3_check_public_access_block',
         IMPORTANCE.HIGH,
-        '주의 사항'
+        'S3 버킷의 공개 액세스 차단이 적절히 설정되어 있는지 확인합니다.'
     )
 
     CHECK_S3_BUCKET_PUBLIC_ACCESS = (
         's3_check_bucket_public_access',
         IMPORTANCE.HIGH,
-        '주의 사항'
+        'S3 버킷의 공개 액세스 권한이 설정되었는지 확인합니다.'
     )
 
     CHECK_ACCOUNT_LEVEL_S3_PUBLIC_ACCESS_BLOCK = (
         's3_check_account_level_public_access_block',
         IMPORTANCE.MID,
-        '주의 사항'
+        '계정 수준에서 S3 공개 액세스 차단이 활성화되어있어야 합니다.'
     )
 
     CHECK_S3_BUCKET_USE_ACL = (
         's3_check_bucket_use_acl',
         IMPORTANCE.HIGH,
-        '주의 사항'
+        'S3 버킷이 ACL을 사용하여 권한을 관리하고 있는지 확인합니다.'
     )
 
     CHECK_S3_BUCKET_ENCRYPTION = (
         's3_check_bucket_encryption',
         IMPORTANCE.MID,
-        '주의 사항'
+        'S3 버킷에 데이터 암호화가 활성화 되어있는지 확인합니다.'
     )
 
     CHECK_S3_BUCKET_MFA_DELETE = (
         's3_check_bucket_mfa_delete',
         IMPORTANCE.MID,
-        '주의 사항'
+        'S3 버킷에서 MFA 삭제 기능이 활성화 되어있는지 확인합니다.'
     )
 
     CHECK_S3_BUCKET_OBJECT_LOCK = (
