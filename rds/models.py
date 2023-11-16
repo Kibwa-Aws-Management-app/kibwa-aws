@@ -16,6 +16,13 @@ class IMPORTANCE(enum.Enum):
 
 
 class RdsEnum(Enum):
+    def __new__(cls, value, importance=IMPORTANCE.MID, pass_criteria=''):
+        obj = object.__new__(cls)
+        obj._value_ = value
+        obj.importance = importance
+        obj.pass_criteria = pass_criteria
+        return obj
+    
     CHECK_RDS_SUBNET_AVAILABILITY = (
         'rds_check_subnet_availability',
         IMPORTANCE.HIGH,

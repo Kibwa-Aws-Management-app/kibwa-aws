@@ -72,15 +72,15 @@ class Rdsboto3:
 
 
 def rds_boto3(key_id, secret, region):
-    rds = Rdsboto3(key_id, secret, region)  # 클래스의 인스턴스 생성
+    rds_instance = Rdsboto3(key_id, secret, region)  # 클래스의 인스턴스 생성
 
     check_list = get_check_list()
     result = []
 
     for method in check_list:
-        if hasattr(rds, method):
+        if hasattr(rds_instance, method):
             try:
-                m = getattr(rds, method)
+                m = getattr(rds_instance, method)
                 if callable(m):
                     buf = m()
                     buf['check_name'] = method.upper()
