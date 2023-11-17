@@ -1,3 +1,7 @@
 from django.contrib import admin
 
-# Register your models here.
+from vpc.models import Vpc
+from vpc.models import VpcList
+
+admin.site.register(Vpc)
+admin.site.register(VpcList)

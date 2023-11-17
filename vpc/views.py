@@ -1,15 +1,18 @@
-from django.http import HttpResponse
+from datetime import datetime, timezone
+
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
+from django.views.decorators.http import require_http_methods
 from vpc.models import Vpc, VpcList, VpcEnum
 from vpc.vpc import vpc_boto3
 from users.models import User
-from datetime import datetime, timezone
 
 
 def index(request):
     return HttpResponse("Hello, world. You're at the vpc index.")
 
 
+@require_http_methods(["GET", "POST"])
 def inspection(request):
     user = request.user
 
@@ -20,12 +23,16 @@ def inspection(request):
         if aws_config.key_id == "":
             return redirect('users:access')
 
-        result = vpc_boto3(aws_config.key_id, aws_config.access_key, aws_config.aws_region)
-        vpc, result1 = save_vpc(user, result)
-        result2 = save_vpc_list(user, result, vpc)
-       
-        return render(request, 'inspection/inspection.html',
-                      {'results': {'check': 'vpc', 'result': result1, 'table': result2}})
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            try:
+                result = vpc_boto3(aws_config.key_id, aws_config.access_key, aws_config.aws_region)
+                vpc, result1 = save_vpc(user, result)
+                print("save")
+                result2 = save_vpc_list(user, result, vpc)
+                return JsonResponse({'results': {'check': 'vpc', 'result': result1, 'table': result2}})
+            except Exception as e:
+                return JsonResponse({'error': str(e)}, status=500)
+        return render(request, 'vpc/load.html')
     return redirect('users:index')
 
 
@@ -34,11 +41,11 @@ def save_vpc(user, result):
     total_num = len(result)
     vpc, created = Vpc.objects.update_or_create(
         root_id=user,
-        vpc_id='vpc_id',
+        vpc_id=str(user),
         defaults={
             'last_modified': datetime.now(tz=timezone.utc),
             'passed_num': passed_num,
-            'total_num': len(result)
+            'total_num': total_num
         }
     )
     if not created and vpc.last_modified:
@@ -52,6 +59,7 @@ def save_vpc(user, result):
 
 def save_vpc_list(user, result, vpc):
     vpc_enum_dict = {e.name: e for e in VpcEnum}
+    new_result = []
 
     for obj in result:
         enum_object = vpc_enum_dict.get(obj['check_name'])
@@ -75,5 +83,8 @@ def save_vpc_list(user, result, vpc):
 
         obj['importance'] = enum_object.importance.name
         obj['date'] = vpc.last_modified.strftime('%Y.%m.%d.')
+        obj['caution'] = enum_object.pass_criteria
 
-    return result
+        new_result.append(obj)
+
+    return new_result

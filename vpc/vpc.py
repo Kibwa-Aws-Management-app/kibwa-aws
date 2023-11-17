@@ -3,7 +3,8 @@ import boto3
 from config import vpc_ep_id
 from config import vpcId
 
-class vpc:
+
+class Vpcboto3:
     def __init__(self, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_DEFAULT_REGION):
         # EC2
         self.ec2_client = boto3.client(
@@ -36,7 +37,7 @@ class vpc:
 
     # VPC Flow Log 설정
     # VPC Flow Log를 설정하지 않은 경우 Fail, VPC Flow Log를 설정한 경우 Pass
-    def vpc_check_flow_logs(self):
+    def vpc_check_vpc_flow_logs(self):
         results = []
         
         for vpc in self.vpcs:
@@ -56,11 +57,9 @@ class vpc:
         
             return {"status": False, "info": f"VPC 계정 '{vpc_id}'에 VPC Flow Logs가 설정되어 있지 않습니다."}
 
-
-
     # Endpoint
     # VPC endpoint가 모든 권한일 경우 Fail
-    def vpc_check_endpoint_permissions(self):
+    def vpc_check_vpc_endpoint_permissions(self):
         results = []
         endpoint_ids = self.endpoint_id
 
@@ -82,7 +81,7 @@ class vpc:
 
     #  VPC endpoint 신뢰할 수 있는 계정일 경우 Pass, VPC endpoint 신뢰할 수 없는 계정일 경우 Fail
     # arn 사용
-    def vpc_check_endpoint_trusted_account_with_arn(self):
+    def vpc_check_vpc_endpoint_trusted_account_with_arn(self):
         results = []
         endpoint_ids = self.endpoint_id
         vpc_ids = {vpcId}
@@ -114,7 +113,7 @@ class vpc:
             return {"status": False,"info": f"VPC Endpoint 계정 {results}: 신뢰할 수 없는 계정입니다."}
 
     # VPC endpoint 계정 2 개 중 모두 신뢰할 수 있는 계정일 경우 Pass, VPC endpoint 계정 2개 중 한 개만 신뢰할 수 있는 계정일 경우 Fail
-    def vpc_check_endpoint_with_two_account_ids_one_trusted_one_not(self):
+    def vpc_check_vpc_endpoint_with_two_account_ids_one_trusted_one_not(self):
         results = []
         endpoint_ids = self.endpoint_id
         vpc_ids = {vpcId}
@@ -172,7 +171,7 @@ class vpc:
 
     # 라우팅 테이블 페어링
     # VPC와 라우팅 테이블이 잘 페어링되어 있지 않은 경우 Fail, VPC와 라우팅 테이블이 잘 페어링되어 있는 경우  Pass
-    def vpc_check_routing_table_peering(self):
+    def vpc_check_vpc_routing_table_peering(self):
         results = []
         results2 = []
         vpc_ids = {vpcId}
@@ -206,7 +205,7 @@ class vpc:
 
     # 서브넷
     # VPC 서브넷이 없을 경우 Fail
-    def vpc_check_subnets(self):
+    def vpc_check_vpc_subnets(self):
         results = []
         vpc_ids = {vpcId}
         
@@ -232,7 +231,7 @@ class vpc:
 
 
     # VPC 서브넷 다른 가용 영역(az)일 경우 Pass, VPC 서브넷 같은 가용 영역(az)일 경우 Fail
-    def vpc_check_subnet_availability_zone(self):
+    def vpc_check_vpc_subnet_availability_zone(self):
         results = []
         vpc_ids = {vpcId}
 
@@ -268,7 +267,7 @@ class vpc:
 
     # elbv2
     # elbv2 로깅을 사용하도록 설정하지 않은 경우 Fail, elbv2 로깅을 사용하도록 설정한 경우 Pass
-    def elbv2_check_logging_enabled(self):
+    def elb_check_elbv2_logging_enabled(self):
         results = []
 
         response = self.elbv2.describe_load_balancers()
@@ -295,17 +294,18 @@ class vpc:
 
 
 def vpc_boto3(key_id, secret, region):
-    vpc_instance = vpc(key_id, secret, region)  # 클래스의 인스턴스 생성
-
+    vpc_instance = Vpcboto3(key_id, secret, region)  # 클래스의 인스턴스 생성
+    print(vpc_instance)
     check_list = get_check_list()
     result = []
 
     for method in check_list:
+        print(method)
         if hasattr(vpc_instance, method):
             m = getattr(vpc_instance, method)
             if callable(m):
                 buf = m()
-                buf['check_name'] = method.upper()
+                buf['check_name'] = method[4:].upper()
                 # buf['check_name'] = str(method)
                 result.append(buf)
             else:
@@ -313,20 +313,20 @@ def vpc_boto3(key_id, secret, region):
         else:
             result.append(
                 {"check_name": None, "status": False, "info": "AWS 연결에 문제가 발생하였습니다. 액세스 아이디와 키를 재설정 해주세요."})
-
+    print(result)
     return result
 
 
 def get_check_list():
     return [
-        'vpc_check_flow_logs'
-        'vpc_check_endpoint_permissions'
-        'vpc_check_endpoint_trusted_account_with_arn'
-        'vpc_check_endpoint_with_two_account_ids_one_trusted_one_not'
-        'vpc_check_routing_table_peering'
-        'vpc_check_subnets'
-        'vpc_check_subnet_availability_zone'
-        'elbv2_check_logging_enabled'
+        'vpc_check_vpc_flow_logs',
+        'vpc_check_vpc_endpoint_permissions',
+        'vpc_check_vpc_endpoint_trusted_account_with_arn',
+        'vpc_check_vpc_endpoint_with_two_account_ids_one_trusted_one_not',
+        'vpc_check_vpc_routing_table_peering',
+        'vpc_check_vpc_subnets',
+        'vpc_check_vpc_subnet_availability_zone',
+        'elb_check_elbv2_logging_enabled'
     ]
 
     
