@@ -35,12 +35,6 @@ class S3Enum(Enum):
         'S3 버킷의 공개 액세스 권한이 설정되었는지 확인합니다.'
     )
 
-    CHECK_ACCOUNT_LEVEL_S3_PUBLIC_ACCESS_BLOCK = (
-        's3_check_account_level_public_access_block',
-        IMPORTANCE.MID,
-        '계정 수준에서 S3 공개 액세스 차단이 활성화되어있어야 합니다.'
-    )
-
     CHECK_S3_BUCKET_USE_ACL = (
         's3_check_bucket_use_acl',
         IMPORTANCE.HIGH,

@@ -4,7 +4,8 @@ import shodan
 from config import secugroup_id
 from config import net_acl_id
 
-class ec2:
+
+class Ec2boto3:
     def __init__(self, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_DEFAULT_REGION):
         self.ec2_client = boto3.client(
             'ec2',
@@ -14,9 +15,6 @@ class ec2:
         )
         self.instance_age_limit = 180  # 원하는데로 변경
         self.ssm_client = boto3.client('ssm')
-
-        #self.shodan_api_key = 'your_shodan_api_key'
-        #self.instance_id = self.ec2_client.describe_instance_attribute()['InstanceId']
 
     # 은경 ######################
     def ec2_instance_managed_by_ssm(self):
@@ -369,8 +367,9 @@ class ec2:
             error_result = {"status": False, "info": f"에러 발생: {str(e)}"}
             return error_result
 
+
 def ec2_boto3(key_id, secret, region):
-    ec2_instance = ec2(key_id, secret, region)  # 클래스의 인스턴스 생성
+    ec2_instance = Ec2boto3(key_id, secret, region)  # 클래스의 인스턴스 생성
     print(ec2_instance.ec2_instance_managed_by_ssm())
     ec2_instance.ec2_instance_managed_by_ssm()
     print(ec2_instance.ec2_instance_older_than_specific_days())
@@ -404,7 +403,7 @@ def get_check_list():
         'ec2_ebs_public_snapshot',
         'ec2_ebs_default_encryption',
         'ec2_ebs_volume_encryption',
-         'ec2_ebs_volume_encryption',
+        'ec2_ebs_volume_encryption',
         'ec2_networkacl_allow_ingress_tcp_port_22',
         'ec2_securitygroup_allow_ingress_port_20_21',
         'ec2_securitygroup_allow_ingress_tcp_port_mysql',

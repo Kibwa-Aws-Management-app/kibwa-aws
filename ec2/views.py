@@ -1,8 +1,8 @@
 from datetime import datetime, timezone
 
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
-
-from django.http import HttpResponse
+from django.views.decorators.http import require_http_methods
 
 from ec2.ec2 import ec2_boto3
 from ec2.models import Ec2, Ec2List, EC2ENUM
@@ -22,14 +22,19 @@ def inspection(request):
         # 액세스 키가 없을 때
         if aws_config.key_id == "":
             return redirect('users:access')
-        try:
-            result = ec2_boto3(aws_config.key_id, aws_config.access_key, aws_config.aws_region)
-            ec2, result1 = save_ec2(user, result)
-            result2 = save_ec2_list(user, result, ec2)
-        except:
-            return render(request, 'error.html')
-        return render(request, 'inspection/inspection.html',
-                      {'results': {'check': 'ec2', 'result': result1, 'table': result2}})
+
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            try:
+                print("hi")
+                result = ec2_boto3(aws_config.key_id, aws_config.access_key, aws_config.aws_region)
+                print("ec2")
+                ec2, result1 = save_ec2(user, result)
+                print("save")
+                result2 = save_ec2_list(user, result, ec2)
+                return JsonResponse({'results': {'check': 'ec2', 'result': result1, 'table': result2}})
+            except Exception as e:
+                return JsonResponse({'error': str(e)}, status=500)
+        return render(request, 'ec2/load.html')
     return redirect('users:index')
 
 
@@ -38,7 +43,7 @@ def save_ec2(user, result):
     total_num = len(result)
     ec2, created = Ec2.objects.update_or_create(
         root_id=user,
-        ec2_id='ec2_id',
+        ec2_id=str(user),
         defaults={
             'last_modified': datetime.now(tz=timezone.utc),
             'passed_num': passed_num,
@@ -56,6 +61,7 @@ def save_ec2(user, result):
 
 def save_ec2_list(user, result, ec2):
     ec2_enum_dict = {e.name: e for e in EC2ENUM}
+    new_result = []
 
     for obj in result:
         enum_object = ec2_enum_dict.get(obj['check_name'])
@@ -79,10 +85,8 @@ def save_ec2_list(user, result, ec2):
 
         obj['importance'] = enum_object.importance.name
         obj['date'] = ec2.last_modified.strftime('%Y.%m.%d.')
+        obj['caution'] = enum_object.pass_criteria
 
-    return result
+        new_result.append(obj)
 
-
-
-
-
+    return new_result

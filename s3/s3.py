@@ -10,33 +10,37 @@ class S3boto3:
             region_name=AWS_DEFAULT_REGION
         )
         self.s3_buckets = self.s3_client.list_buckets()['Buckets']
-        print("s3", self.s3_client)
-        print("s3 bucket", self.s3_buckets)
+
+        self.iam_client = boto3.client(
+            'iam',
+            aws_access_key_id=AWS_ACCESS_KEY_ID,
+            aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
+            region_name=AWS_DEFAULT_REGION
+        )
 
     # S3가 계정에 대해 공개 액세스 차단이 있는지 확인
+    def check_s3_public_access_block(self):
 
-    # def check_s3_public_access_block(self):
-    #
-    #     for bucket in self.s3_buckets:
-    #         bucket_name = bucket['Name']
-    #         bucket_access = self.s3_client.get_public_access_block(Bucket=bucket_name)
-    #         if self.no_s3_public_access_block(bucket_access):
-    #             return {"status": True, "info": f"S3 버킷 {bucket_name}: 공개 액세스 차단이 활성화되어 있습니다."}
-    #         else:
-    #             return {"status": False, "info": f"S3 버킷 {bucket_name}: 공개 액세스 차단이 비활성화되어 있습니다."}
-    #
-    # def no_s3_public_access_block(self):
-    #     bucket_block = self['PublicAccessBlockConfiguration']
-    #
-    #     for i in range(len(bucket_block)):
-    #         # 'BlockPublicAcls' 'IgnorePublicAcls' 'BlockPublicPolicy' 'RestrictPublicBuckets'
-    #         try:
-    #             if (bucket_block[i]) == False:
-    #                 print("[FAIL]", f"{bucket_block[i]}가 비활성화되어 있습니다.")
-    #                 return {"status": False, "info": f"{bucket_block[i]}가 비활성화되어 있습니다."}
-    #         except:
-    #             return {"status": True, "info": f"{bucket_block[i]}가 활성화되어 있습니다."}
-    #     return {"status": True, "info": f"bucket_block가 활성화되어 있습니다."}
+        for bucket in self.s3_buckets:
+            bucket_name = bucket['Name']
+            bucket_access = self.s3_client.get_public_access_block(Bucket=bucket_name)
+            if self.check_no_s3_public_access_block(bucket_access):
+                return {"status": True, "info": f"S3 버킷 {bucket_name}: 공개 액세스 차단이 활성화되어 있습니다."}
+            else:
+                return {"status": False, "info": f"S3 버킷 {bucket_name}: 공개 액세스 차단이 비활성화되어 있습니다."}
+
+    def check_no_s3_public_access_block(bucket_access):
+        bucket_block = bucket_access['PublicAccessBlockConfiguration']
+
+        for i in range(len(bucket_block)):
+            # 'BlockPublicAcls' 'IgnorePublicAcls' 'BlockPublicPolicy' 'RestrictPublicBuckets'
+            try:
+                if (bucket_block[i]) == False:
+                    print("[FAIL]", f"{bucket_block[i]}가 비활성화되어 있습니다.")
+                    return False
+            except:
+                print("[PASS]", f"{bucket_block[i]}가 활성화되어 있습니다.")
+        return True
 
     #  버킷에 대해 블록 공개 액세스가 있는지 확인
     def s3_check_s3_bucket_public_access(self):
@@ -48,53 +52,39 @@ class S3boto3:
                 pass
             else:
                 return {"status": False, "info": f"S3 버킷 {bucket_name}: 블록 공개 액세스가 비활성화되어 있습니다."}
-        return {"status": True, "info": f"S3 버킷 {bucket_name}: 블록 공개 액세스가 활성화되어 있습니다."}
+        return {"status": True, "info": f"블록 공개 액세스가 활성화되어 있습니다."}
 
-    # 계정 수준에서 모든 S3 공개 액세스가 차단되어 있는지 확인
-    # def s3_check_account_level_s3_public_access_block(self):
-    #     s3_control = boto3.client('s3control')
-    #
-    #     # 계정 ID 가져오기
-    #     for user in self.users:
-    #         account_id = s3_control.create_access_point()['AccountId']
-    #         bucket_access = self.s3_client.get_public_access_block(AccountId=account_id)
-    #         if self.s3_check_no_account_level_s3_public_access_block(bucket_access):
-    #             pass
-    #         else:
-    #             return {"status": False, "info": f"계정 {account_id}: 공개 액세스 차단이 비활성화되어 있습니다."}
-    #     return {"status": True, "info": f"모든 계정이 공개 액세스 차단이 활성화되어 있습니다."}
-
-    def s3_check_no_account_level_s3_public_access_block(bucket_access):
+    def check_no_account_level_s3_public_access_block(bucket_access):
         bucket_block = bucket_access['PublicAccessBlockConfiguration']
-        print(bucket_block)
 
         for i in range(len(bucket_block)):
-            print(bucket_block)
             # 'BlockPublicAcls' 'IgnorePublicAcls' 'BlockPublicPolicy' 'RestrictPublicBuckets'
             try:
-                if bucket_block[i] is None:
+                if (bucket_block[i]) == False:
                     print("[FAIL]", f"{bucket_block[i]}가 비활성화되어 있습니다.")
-                    return {"status": False, "info": f"{bucket_block[i]}가 비활성화되어 있습니다."}
+                    return False
             except:
-                print("[PASS]", f"모든 버킷이 활성화되어 있습니다.")
-        return {"status": True, "info": f"모든 버킷이 활성화되어 있습니다."}
+                print("[PASS]", f"{bucket_block[i]}가 활성화되어 있습니다.")
+        return True
 
     # S3 버킷이 ACL을 사용하지 못하도록 설정되어 있는지 확인
-    # def s3_check_s3_bucket_use_acl(self):
-    #     for bucket in self.s3_buckets:
-    #         bucket_name = bucket['Name']
-    #         print(bucket_name)
-    #         bucket_access = self.get_bucket_acl(Bucket=strbucket_name)
-    #         for grant in bucket_access['Grants']:
-    #             if bucket_name in grant.get('Grantee', {}).get('URI', ''):
-    #                 return {"status": False, "info": f"S3 버킷 {bucket_name}: ACL 허용되어 있습니다."}
-    #     return {"status": True, "info": f"ACL 비허용되어 있습니다."}
+    def s3_check_s3_bucket_use_acl(self):
+        for bucket in self.s3_buckets:
+            bucket_name = bucket['Name']
+            try:
+                bucket_access = self.s3_client.get_bucket_acl(Bucket=bucket_name)
+            except:
+                return {"status": False, "info": f"S3 버킷 {bucket_name}: 액세스가 거부 되었습니다."}
+            for grant in bucket_access['Grants']:
+                if bucket_name in grant.get('Grantee', {}).get('URI', ''):
+                    return {"status": False, "info": f"S3 버킷 {bucket_name}: ACL 허용되어 있습니다."}
+        return {"status": True, "info": f"ACL 비허용되어 있습니다."}
 
     # S3 버킷에 서버 측 암호화가 되어 있는지 확인
     def s3_check_s3_bucket_encryption(self):
         for bucket in self.s3_buckets:
             bucket_name = bucket['Name']
-            bucket_encryption = self.get_bucket_encryption(Bucket=bucket_name)
+            bucket_encryption = self.s3_client.get_bucket_encryption(Bucket=bucket_name)
 
             if 'ServerSideEncryptionConfiguration' in bucket_encryption:
                 pass
@@ -106,7 +96,7 @@ class S3boto3:
     def s3_check_s3_bucket_mfa_delete(self):
         for bucket in self.s3_buckets:
             bucket_name = bucket['Name']
-            bucket_versioning = self.get_bucket_versioning(Bucket=bucket_name)
+            bucket_versioning = self.s3_client.get_bucket_versioning(Bucket=bucket_name)
 
             if 'MFADelete' in bucket_versioning and bucket_versioning['MFADelete'] == 'Enabled':
                 pass
@@ -230,12 +220,11 @@ def s3_boto3(key_id, secret, region):
 
 def get_s3_check_list():
     return [
-        # 's3_check_s3_public_access_block',
+        's3_check_s3_public_access_block',
         's3_check_s3_bucket_public_access',
-        # 's3_check_account_level_s3_public_access_block',
-        # 's3_check_s3_bucket_use_acl',
-        # 's3_check_s3_bucket_encryption',
-        # 's3_check_s3_bucket_mfa_delete',
+        's3_check_s3_bucket_use_acl',
+        's3_check_s3_bucket_encryption',
+        's3_check_s3_bucket_mfa_delete',
 
         's3_check_s3_bucket_object_lock',
         's3_check_s3_bucket_policy',
