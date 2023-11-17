@@ -36,7 +36,7 @@ class vpc:
 
     # VPC Flow Log 설정
     # VPC Flow Log를 설정하지 않은 경우 Fail, VPC Flow Log를 설정한 경우 Pass
-    def check_vpc_flow_logs(self):
+    def vpc_check_flow_logs(self):
         results = []
         
         for vpc in self.vpcs:
@@ -51,13 +51,16 @@ class vpc:
         if not results:
             print("[PASS] : VPC Flow Log를 설정함")
             return {"status": True, "info": "VPC 계정이 VPC Flow Logs가 설정되어 있습니다."}
-        return {"status": False, "info": f"VPC 계정 '{vpc_id}'에 VPC Flow Logs가 설정되어 있지 않습니다."}
+        else:
+            print(f"[FAIL]: VPC 계정 '{vpc_id}'에 VPC Flow Logs가 설정되어 있지 않습니다.")
+        
+            return {"status": False, "info": f"VPC 계정 '{vpc_id}'에 VPC Flow Logs가 설정되어 있지 않습니다."}
 
 
 
     # Endpoint
     # VPC endpoint가 모든 권한일 경우 Fail
-    def check_vpc_endpoint_permissions(self):
+    def vpc_check_endpoint_permissions(self):
         results = []
         endpoint_ids = self.endpoint_id
 
@@ -68,15 +71,18 @@ class vpc:
             if "*" in endpoint['PolicyDocument']:
                 results.append(endpoint_id)
             else:
-                print("[pass]:VPC Endpoint가 적절한 권한으로 설정되어 있습니다.")
+                print("[PASS]:VPC Endpoint가 적절한 권한으로 설정되어 있습니다.")
         if not results:
             print("[PASS] : VPC Endpoint가 적절한 권한으로 설정되어 있습니다.")
             return {"status": True, "info": "VPC Endpoint가 적절한 권한으로 설정되어 있습니다."}
-        return {"status": False, "info": f"VPC Endpoint 계정 {results}: VPC Endpoint가 모든 권한으로 설정되어 있습니다."}
+        else:
+            print(f"[FAIL] : VPC Endpoint 계정 {results}: VPC Endpoint가 모든 권한으로 설정되어 있습니다.")
+            
+            return {"status": False, "info": f"VPC Endpoint 계정 {results}: VPC Endpoint가 모든 권한으로 설정되어 있습니다."}
 
     #  VPC endpoint 신뢰할 수 있는 계정일 경우 Pass, VPC endpoint 신뢰할 수 없는 계정일 경우 Fail
     # arn 사용
-    def check_vpc_endpoint_trusted_account_with_arn(self):
+    def vpc_check_endpoint_trusted_account_with_arn(self):
         results = []
         endpoint_ids = self.endpoint_id
         vpc_ids = {vpcId}
@@ -103,10 +109,12 @@ class vpc:
         if not results:
             print("[PASS] : VPC endpoint 신뢰할 수 있는 계정")
             return {"status": True,"info": f"신뢰할 수 있는 계정입니다."}
-        return {"status": False,"info": f"VPC Endpoint 계정 {results}: 신뢰할 수 없는 계정입니다."}
+        else:
+            print(f"[FAIL]: VPC Endpoint 계정 {results}: 신뢰할 수 없는 계정입니다.")
+            return {"status": False,"info": f"VPC Endpoint 계정 {results}: 신뢰할 수 없는 계정입니다."}
 
     # VPC endpoint 계정 2 개 중 모두 신뢰할 수 있는 계정일 경우 Pass, VPC endpoint 계정 2개 중 한 개만 신뢰할 수 있는 계정일 경우 Fail
-    def check_vpc_endpoint_with_two_account_ids_one_trusted_one_not(self):
+    def vpc_check_endpoint_with_two_account_ids_one_trusted_one_not(self):
         results = []
         endpoint_ids = self.endpoint_id
         vpc_ids = {vpcId}
@@ -148,7 +156,7 @@ class vpc:
                                     if principal_aws in trusted_account_ids:
                                         trusted_count += 1
                             else:
-                                print("조건에 부합하지 않습니다.")
+                                print("[FAIL] : 조건에 부합하지 않습니다.")
 
                     if trusted_count >= 2:
                         print("[PASS] : 2개 중 모두 신뢰할 수 있는 계정임.")
@@ -156,13 +164,15 @@ class vpc:
                         results.append(vpc_id)
 
         if not results:
-            print("[PASS] : 2개 중 모두 신뢰할 수 있는 계정임")
+            print("[PASS] : 2개 중 모두 신뢰할 수 있는 계정입니다.")
             return {"status": True, "info": "모두 신뢰할 수 있는 계정입니다."}
-        return {"status": False, "info": f"VPC Endpoint 계정 {results}: 신뢰할 수 없는 계정입니다."}
+        else:
+            print(f"[FAIL] : VPC Endpoint 계정 {results}: 신뢰할 수 없는 계정입니다.")
+            return {"status": False, "info": f"VPC Endpoint 계정 {results}: 신뢰할 수 없는 계정입니다."}
 
     # 라우팅 테이블 페어링
     # VPC와 라우팅 테이블이 잘 페어링되어 있지 않은 경우 Fail, VPC와 라우팅 테이블이 잘 페어링되어 있는 경우  Pass
-    def check_vpc_routing_table_peering(self):
+    def vpc_check_routing_table_peering(self):
         results = []
         results2 = []
         vpc_ids = {vpcId}
@@ -188,13 +198,15 @@ class vpc:
             print("[PASS] : 2개 중 모두 신뢰할 수 있는 계정임")
             return {"status": True, "info": f"VPC 계정 모두 Routing Table이 페어링되어 있습니다."}
         if not results2:
+            print(f"[FAIL] : VPC 계정 {results}: Routing Table이 페어링되어 있지 않습니다.")
             return {"status": False, "info": f"VPC 계정 {results}: Routing Table이 페어링되어 있지 않습니다."}
         else:
+            print(f"[FAIL] : VPC 계정 {results2}: Routing Table이 페어링되어 있지 않습니다.")
             return {"status": False, "info": f"VPC 계정 {results2}: Routing Table를 찾을 수 없습니다."}
 
     # 서브넷
     # VPC 서브넷이 없을 경우 Fail
-    def check_vpc_subnets(self):
+    def vpc_check_subnets(self):
         results = []
         vpc_ids = {vpcId}
         
@@ -214,11 +226,13 @@ class vpc:
         if not results:
             print("[PASS] : 서브넷이 존재합니다.")
             return {"status": True, "info": "VPC 계정에 서브넷이 존재합니다."}
-        return {"status": False, "info": f"VPC 계정 {results}: 서브넷이 존재하지 않습니다."}
+        else:
+            print(f"[FAIL] : VPC 계정 {results}: 서브넷이 존재하지 않습니다.")
+            return {"status": False, "info": f"VPC 계정 {results}: 서브넷이 존재하지 않습니다."}
 
 
     # VPC 서브넷 다른 가용 영역(az)일 경우 Pass, VPC 서브넷 같은 가용 영역(az)일 경우 Fail
-    def check_vpc_subnet_availability_zone(self):
+    def vpc_check_subnet_availability_zone(self):
         results = []
         vpc_ids = {vpcId}
 
@@ -248,11 +262,13 @@ class vpc:
         if not results:
             print("[PASS] : 다른 가용 영역(AZ)입니다")
             return {"status": True, "info": f"서브넷과 다른 가용 영역(AZ)입니다."}
-        return {"status": False, "info": f"VPC 계정 {vpc_id}, Subnet {subnet_id}: 같은 가용 영역(AZ)입니다."}
+        else:
+            print(f"[FAIL] : VPC 계정 {vpc_id}, Subnet {subnet_id}: 같은 가용 영역(AZ)입니다.")
+            return {"status": False, "info": f"VPC 계정 {vpc_id}, Subnet {subnet_id}: 같은 가용 영역(AZ)입니다."}
 
     # elbv2
     # elbv2 로깅을 사용하도록 설정하지 않은 경우 Fail, elbv2 로깅을 사용하도록 설정한 경우 Pass
-    def check_elbv2_logging_enabled(self):
+    def elbv2_check_logging_enabled(self):
         results = []
 
         response = self.elbv2.describe_load_balancers()
@@ -273,7 +289,9 @@ class vpc:
         if not results:
             print("[PASS] : ELBv2 load balancer(s)가 로깅을 사용하고 있습니다.")
             return {"status": True, "info": "ELBv2 load balancer(s)가 로깅을 사용하고 있습니다."}
-        return {"status": False, "info": f" {results} ELBv2 load balancer(s)가 로깅을 사용하고 있지 않습니다."}
+        else:
+            print(f"[FAIL] : {results} ELBv2 load balancer(s)가 로깅을 사용하고 있지 않습니다.")
+            return {"status": False, "info": f" {results} ELBv2 load balancer(s)가 로깅을 사용하고 있지 않습니다."}
 
 
 def vpc_boto3(key_id, secret, region):
@@ -301,23 +319,14 @@ def vpc_boto3(key_id, secret, region):
 
 def get_check_list():
     return [
-        'check_vpc_flow_logs',
-        'check_vpc_endpoint_permissions',
-        'check_vpc_endpoint_trusted_account_with_arn',
-        'check_vpc_endpoint_with_two_account_ids_one_trusted_one_not',
-        'check_vpc_routing_table_peering',
-        'check_vpc_subnets',
-        'check_vpc_subnet_availability_zone',
-        'check_elbv2_logging_enabled'
+        'vpc_check_flow_logs'
+        'vpc_check_endpoint_permissions'
+        'vpc_check_endpoint_trusted_account_with_arn'
+        'vpc_check_endpoint_with_two_account_ids_one_trusted_one_not'
+        'vpc_check_routing_table_peering'
+        'vpc_check_subnets'
+        'vpc_check_subnet_availability_zone'
+        'elbv2_check_logging_enabled'
     ]
 
-    # print("VPC Flow Logs 설정:", check_vpc_flow_logs(vpc_id))
-    # print("VPC Endpoint 권한:", check_vpc_endpoint_permissions(endpoint_id))
-    # print("VPC Endpoint 신뢰할 수 있는 계정:",
-    #     check_vpc_endpoint_trusted_account_with_arn(vpc_id, endpoint_id, trusted_account_arn))
-    # print("VPC Endpoint 2개 계정 신뢰 확인:", vpc_endpoint_with_two_account_ids_one_trusted_one_not(
-    #     vpc_id, endpoint_ids, trusted_account_ids))
-    # print("VPC Routing:", check_vpc_routing_table_peering(vpc_id, routing_table_id))
-    # print("VPC 서브넷:", check_vpc_subnets(vpc_id))
-    # print("VPC 서브넷 가용 영역:", check_subnet_availability_zone(subnet_id))
-    # print("ELBv2 로깅:", check_elbv2_logging_enabled())
+    
