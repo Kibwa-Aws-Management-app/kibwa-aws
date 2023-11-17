@@ -31,42 +31,129 @@ class EC2ENUM(Enum):
     AMI_PUBLIC = (
         'ec2_ami_public',
         IMPORTANCE.HIGH,
-        '주의 사항!'
+        '모든 AMI가 비공개 상태여야 안전합니다.'
     )
-    EBS_DEFAULT_ENCRYPTION = 'ec2_ebs_default_encryption'
-    EBS_PUBLIC_SNAPSHOT = 'ec2_ebs_public_snapshot'
-    EBS_SNAPSHOTS_ENCRYPTED = 'ec2_ebs_snapshots_encrypted'
-    EBS_VOLUME_ENCRYPTION = 'ec2_ebs_volume_encryption'
-
-    ELASTIC_IP_SHODAN = 'ec2_elastic_ip_shodan'
-    ELASTIC_IP_UNASSIGNED = 'ec2_elastic_ip_unassgined'
-    INSTANCE_DETAILED_MONITORING_ENABLED = 'ec2_instance_detailed_monitoring_enabled'
-    INSTANCE_IMDSV2_ENABLED = 'ec2_instance_imdsv2_enabled'
-    INSTANCE_INTERNET_FACING_WITH_INSTANCE_PROFILE = 'ec2_instance_internet_facing_with_instance_profile'
     
-    INSTANCE_MANAGED_BY_SSM = 'ec2_instance_managed_by_ssm'
-    INSTANCE_OLDER_THAN_SPECIFIC_DAYS = 'ec2_instance_older_than_specific_days'
-    INSTANCE_PROFILE_ATTACHED = 'ec2_instance_profile_attached'
-    INSTANCE_PUBLIC_IP = 'ec2_instance_public_ip'
+    EBS_DEFAULT_ENCRYPTION = (
+        'ec2_ebs_default_encryption',
+        IMPORTANCE.MID,
+        '볼륨이 암호화되어 있어야 안전합니다.'
+    )
+
+    EBS_PUBLIC_SNAPSHOT = (
+        'ec2_ebs_public_snapshot',
+        IMPORTANCE.MID,
+        '스냅샷이 비공개 상태여야 안전합니다.'
+    )
+
+    EBS_SNAPSHOTS_ENCRYPTED = (
+        'ec2_ebs_snapshots_encrypted',
+        IMPORTANCE.MID,
+        '스냅샷이 암호화되어 있어야 안전합니다.'
+    )
+
+    EBS_VOLUME_ENCRYPTION = (
+        'ec2_ebs_volume_encryption',
+        IMPORTANCE.MID,
+        '볼륨이 암호화되어 있어야 안전합니다.'
+    )
+
+    '''ELASTIC_IP_SHODAN = (
+        'ec2_elastic_ip_shodan',
+        IMPORTANCE.LOW,
+        '낮은 중요도!'
+    )
+
+    ELASTIC_IP_UNASSIGNED = (
+        'ec2_elastic_ip_unassgined',
+        IMPORTANCE.MID,
+        '중요 사항!'
+    )
+
+    INSTANCE_DETAILED_MONITORING_ENABLED = (
+        'ec2_instance_detailed_monitoring_enabled',
+        IMPORTANCE.HIGH,
+        '매우 중요한 사항!'
+    )
+
+    INSTANCE_IMDSV2_ENABLED = (
+        'ec2_instance_imdsv2_enabled',
+        IMPORTANCE.MID,
+        '낮은 중요도!'
+    )
+
+    INSTANCE_INTERNET_FACING_WITH_INSTANCE_PROFILE = (
+        'ec2_instance_internet_facing_with_instance_profile',
+        IMPORTANCE.MID,
+        '중요 사항!'
+    )'''
+
+    INSTANCE_MANAGED_BY_SSM = (
+        'ec2_instance_managed_by_ssm',
+        IMPORTANCE.MID,
+        '인스턴스가 ssm에 관리되고 있어야 안전합니다.'
+    )
+
+    INSTANCE_OLDER_THAN_SPECIFIC_DAYS = (
+        'ec2_instance_older_than_specific_days',
+        IMPORTANCE.MID,
+        '인스턴스가 특정 날짜 이후 생성되어야 안전합니다.'
+    )
+
+    INSTANCE_PROFILE_ATTACHED = (
+        'ec2_instance_profile_attached',
+        IMPORTANCE.MID,
+        '인스턴스가 인스턴스 프로파일과 연결되어야 안전합니다.'
+    )
+
+    INSTANCE_PUBLIC_IP = (
+        'ec2_instance_public_ip',
+        IMPORTANCE.HIGH,
+        '인스턴스가 퍼블릭 IP를 보유하고 있어야 안전합니다.'
+    )
+
     INSTANCE_SECRETS_USER_DATA = (
         'ec2_instance_secrets_user_data',
         IMPORTANCE.HIGH,
-        '주의 사항!'
+        '인스턴스의 사용자 데이터에 민감한 정보가 포함되지 않아야 안전합니다.'
     )
     # NETWORKACL_ALLOW_INGRESS_ANY_PORT = 'ec2_networkacl_allow_ingress_any_port'
-    NETWORKACL_ALLOW_INGRESS_TCP_PORT_22 = 'ec2_networkacl_allow_ingress_tcp_port_22'
+    NETWORKACL_ALLOW_INGRESS_TCP_PORT_22 =  (
+        'ec2_networkacl_allow_ingress_tcp_port_22',
+        IMPORTANCE.MID,
+        '인스턴스가 TCP 포트 22에 대한 인바운드 트래픽이 차단되어 있어야 안전합니다.'
+    )
     # NETWORKACL_ALLOW_INGRESS_TCP_PORT_3389 = 'ec2_networkacl_allow_ingress_tcp_port_3389'
     # SECURITYGROUP_ALLOW_INGRESS_FROM_INTERNET_TO_ANY_PORT = 'ec2_securitygroup_allow_ingress_from_internet_to_any_port'
     # SECURITYGROUP_ALLOW_INGRESS_FROM_INTERNET_TO_PORT_MONGODB = 'ec2_securitygroup_allow_ingress_from_internet_to_port_mongodb'
-    SECURITYGROUP_ALLOW_INGRESS_PORT_20_21 = 'ec2_securitygroup_allow_ingress_port_20_21'
+    SECURITYGROUP_ALLOW_INGRESS_PORT_20_21 =  (
+        'ec2_securitygroup_allow_ingress_port_20_21',
+        IMPORTANCE.MID,
+        '인터넷에서 TCP 포트 20,21로의 인바운드 트래픽이 차단되어 있어야 안전합니다.'
+    )
     # SECURITYGROUP_ALLOW_INGRESS_FROM_INTERNET_TO_TCP_PORT_22 = 'ec2_securitygroup_allow_ingress_from_internet_to_tcp_port_22'
     # SECURITYGROUP_ALLOW_INGRESS_FROM_INTERNET_TO_TCP_PORT_3389 = 'ec2_securitygroup_allow_ingress_from_internet_to_tcp_port_3389'
     # SECURITYGROUP_ALLOW_INGRESS_FROM_INTERNET_TO_TCP_PORT_CASSANDRA = 'ec2_securitygroup_allow_ingress_from_internet_to_tcp_port_cassandra'
-    SECURITYGROUP_ALLOW_INGRESS_TCP_PORT_MYSQL = 'ec2_securitygroup_allow_ingress_tcp_port_mysql'
-    SECURITYGROUP_ALLOW_WIDE_OPEN_PUBLIC_IPV4 = 'ec2_securitygroup_allow_wide_open_public_ipv4'
-    SECURITYGROUP_DEFAULT_RESTRICT_TRAFFIC = 'ec2_securitygroup_default_restrict_traffic'
+    SECURITYGROUP_ALLOW_INGRESS_TCP_PORT_MYSQL =  (
+        'ec2_securitygroup_allow_ingress_tcp_port_mysql',
+        IMPORTANCE.MID,
+        '인터넷에서 MySQL DB로의 인바운드 트래픽이 차단되어 있어야 안전합니다.'
+    )
+    SECURITYGROUP_ALLOW_WIDE_OPEN_PUBLIC_IPV4 =  (
+        'ec2_securitygroup_allow_wide_open_public_ipv4',
+        IMPORTANCE.MID,
+        '퍼블릭 IPv4 주소 대역으로의 인바운드 트래픽이 차단되어 있어야 안전합니다.'
+    )
+    SECURITYGROUP_DEFAULT_RESTRICT_TRAFFIC =  (
+        'ec2_securitygroup_default_restrict_traffic',
+        IMPORTANCE.MID,
+        '기본적으로 모든 트래픽이 제한되어 있어야 안전합니다.'
+    )
     # SECURITYGROUP_FROM_LAUNCH_WIZARD = 'ec2_securitygroup_from_launch_wizard'
-    SECURITYGROUP_NOT_USED = 'ec2_securitygroup_not_used'
+    SECURITYGROUP_NOT_USED =  ('ec2_securitygroup_not_used',
+        IMPORTANCE.MID,
+        '보안 그룹이 사용 중이어야 안전합니다.'
+    )
     # SECURITYGROUP_WITH_MANY_INGRESS_EGRESS_RULES = 'ec2_securitygroup_with_many_ingress_egress_rules'
 
 

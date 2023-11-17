@@ -50,6 +50,7 @@ class Ec2boto3:
             print(f"Error checking SSM management for instance {instance_id}: {str(e)}")
             return False
 
+    #EC2 인스턴스가 특정 날짜 전에 생성됐는지 검사. 이후 생성 시 PASS
     def ec2_instance_older_than_specific_days(self):
         ec2_instances = self.ec2_client.describe_instances(
             Filters=[{'Name': 'instance-state-name', 'Values': ['running']}])
@@ -64,15 +65,14 @@ class Ec2boto3:
                 age_limit = current_time - timedelta(days=self.instance_age_limit)
 
                 if launch_time < age_limit:
-                    print(f"[FAIL] : EC2 Instance {instance_id} is older than {self.instance_age_limit} days.")
+                    print(f"[FAIL] : EC2 인스턴스 {instance_id}의 운영 기간이 {self.instance_age_limit}일 이상입니다.")
                     results.append(instance_id)
                 else:
-                    print(f"[PASS] : EC2 Instance {instance_id} is not older than {self.instance_age_limit} days.")
+                    print(f"[PASS] : EC2 인스턴스 {instance_id}의 운영 기간이 {self.instance_age_limit}일 미만입니다.")
 
         if not results:
-            print("[PASS] : Instance managed by Systems Manager.")
-            return {"status": True, "info": "모든 인스턴스가 ssm에 관리되고 있어 안전합니다."}
-        return {"status": False, "info": f"'{results}'인스턴스가 ssm에 관리되고 있지 않습니다."}
+            return {"status": True, "info": "모든 인스턴스가 특정 날짜 이후 생성되어 안전합니다."}
+        return {"status": False, "info": f"'{results}'인스턴스가 특정 날짜 이전 생성되어 있습니다."}
 
     def ec2_instance_profile_attached(self):
         ec2_instances = self.ec2_client.describe_instances(
@@ -135,7 +135,7 @@ class Ec2boto3:
 
         if not results:
             print("[PASS] : No instances contain sensitive information in user data.")
-            return {"status": True, "info": "모든 인스턴스의 사용자 데이터에 민감한 정보가 없습니다."}
+            return {"status": True, "info": "모든 인스턴스의 사용자 데이터에 민감한 정보가 포함되지 않아 안전합니다."}
         else:
             return {"status": False, "info": f"'{results}' 인스턴스의 사용자 데이터에 민감한 정보가 포함되어 있습니다."}
 
@@ -160,7 +160,7 @@ class Ec2boto3:
         if results:
             return {"status": False, "info": f"'{results}' AMI가 공개되어 있습니다."}
         else:
-            return {"status": True, "info": "모든 AMI가 비공개 상태입니다."}
+            return {"status": True, "info": "모든 AMI가 비공개 상태여서 안전합니다."}
 
     def ec2_ebs_snapshots_encrypted(self):
         # 스냅샷 암호화 상태 확인
@@ -176,7 +176,7 @@ class Ec2boto3:
         if results:
             return {"status": False, "info": f"'{results}' 스냅샷이 암호화되어 있지 않습니다."}
         else:
-            return {"status": True, "info": "모든 스냅샷이 암호화되어 있습니다."}
+            return {"status": True, "info": "모든 스냅샷이 암호화되어 있어 안전합니다."}
 
     def ec2_ebs_public_snapshot(self):
         snapshots = self.ec2_client.describe_snapshots(OwnerIds=['self'])['Snapshots']
@@ -199,7 +199,7 @@ class Ec2boto3:
         if not results:
             print("[PASS] : No public snapshots found.")
             print(results)
-            return {"status": True, "info": "모든 스냅샷이 비공개 상태입니다."}
+            return {"status": True, "info": "모든 스냅샷이 비공개 상태여서 안전합니다."}
         else:
             return {"status": False, "info": f"{results} 스냅샷이 공개 상태입니다."}
 
@@ -217,7 +217,7 @@ class Ec2boto3:
         if results:
             return {"status": False, "info": f"'{results}' 볼륨이 암호화되어 있지 않습니다."}
         else:
-            return {"status": True, "info": "모든 볼륨이 암호화되어 있습니다."}
+            return {"status": True, "info": "모든 볼륨이 암호화되어 있어 안전합니다."}
 
     def ec2_ebs_volume_encryption(self):
         # 볼륨 암호화 상태 확인
@@ -233,30 +233,9 @@ class Ec2boto3:
         if results:
             return {"status": False, "info": f"'{results}' 볼륨이 암호화되어 있지 않습니다."}
         else:
-            return {"status": True, "info": "모든 볼륨이 암호화되어 있습니다."}
+            return {"status": True, "info": "모든 볼륨이 암호화되어 있어 안전합니다."}
 
     #예은
-
-    def find_security_group_id(self):
-        try:
-            response = self.ec2_client.describe_security_groups(
-                Filters=[{'Name': 'group-name', 'Values': ['YourSecurityGroupName']}]
-            )
-            security_group_id = response['SecurityGroups'][0]['GroupId']
-            return security_group_id
-        except Exception as e:
-            print(f"에러 발생: {str(e)}")
-            return None
-    def find_network_acl_id(self):
-        try:
-            response = self.ec2_client.describe_network_acls(
-                Filters=[{'Name': 'tag:Name', 'Values': ['YourNetworkACLName']}]
-            )
-            network_acl_id = response['NetworkAcls'][0]['NetworkAclId']
-            return network_acl_id
-        except Exception as e:
-            print(f"에러 발생: {str(e)}")
-            return None
     def ec2_networkacl_allow_ingress_tcp_port_22(self):
         port_to_check = 22 
         network_acl_id = net_acl_id
@@ -272,6 +251,7 @@ class Ec2boto3:
         except Exception as e:
             print(f"에러 발생: {str(e)}")
             return {"status": False, "info": f"에러 발생: {str(e)}"}
+        
     def ec2_securitygroup_allow_ingress_port_20_21(self):
         ports = [20, 21]
         security_group_id = secugroup_id
@@ -291,6 +271,7 @@ class Ec2boto3:
         except Exception as e:
             print(f"에러 발생: {str(e)}")
             return {"status": False, "info": f"에러 발생: {str(e)}"}
+        
     def ec2_securitygroup_allow_ingress_tcp_port_mysql(self):
         mysql_port = 3306
         security_group_id = secugroup_id
@@ -306,7 +287,7 @@ class Ec2boto3:
                 return {"status": False, "info": f"MySQL DB에 대한 인바운드 트래픽이 허용되어 있습니다.", "entries": allow_entries}
             else:
                 print(f"[PASS] : 인터넷에서 TCP 포트 {mysql_port}로의 인바운드 트래픽이 차단되어 있어 안전합니다.")
-                return {"status": True, "info": f"인터넷에서 MySQL DB로의 인바운드 트래픽이 차단되어 있어 안전합니다."}
+                return {"status": True, "info": "인터넷에서 MySQL DB로의 인바운드 트래픽이 차단되어 있어 안전합니다."}
         except Exception as e:
             print(f"에러 발생: {str(e)}")
             return {"status": False, "info": f"에러 발생: {str(e)}"}
@@ -359,7 +340,7 @@ class Ec2boto3:
             unused_groups = [sg for sg in all_security_groups if sg['GroupId'] not in used_security_groups]
             if not unused_groups:
                 print("[PASS] : T모든 보안 그룹이 사용 중입니다.")
-                return {"status": True, "info": "모든 보안 그룹이 사용 중입니다."}
+                return {"status": True, "info": "모든 보안 그룹이 사용 중이어야 안전합니다."}
             else:
                 print(f"[FAIL] : 사용되지 않는 보안 그룹이 있습니다. : {unused_groups}")
                 return {"status": False, "info": f"사용되지 않는 보안 그룹이 있습니다."}
