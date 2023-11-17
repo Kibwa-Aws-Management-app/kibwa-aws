@@ -1,26 +1,37 @@
-{% extends "base.html" %}
+<!DOCTYPE html>
+{% load static %}
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 
-{# 주의!!! label의 for, input의 name, id 변경 금지! #}
-{% block content %}
+    <title>액세스 키 입력</title>
+    <link rel="stylesheet" href="{% static 'css/login.css' %}" type="text/css"/>
+</head>
+<body>
 <div class="container my-3">
-    <p><strong>{{ user }}</strong>님,</p>
+    <p> <strong> {{ user }}</strong>님,</p>
     <form method="post" action="{% url 'users:access' %}">
         {% csrf_token %}
         <div class="mb-3">
             <label for="key_id">Enter the Access ID</label>
-            <input type="text" class="form-control" name="key_id" id="key_id"
+            <input type="text" class="form-control" name="key_id" id="key_id" placeholder="access id"
                    value="{{ form.key_id.value|default_if_none:'' }}">
         </div>
         <div class="mb-3">
             <label for="access_key">Enter the Access Key</label>
-            <input type="text" class="form-control" name="access_key" id="access_key"
+            <input type="text" class="form-control" name="access_key" id="access_key"  placeholder="access key"
                    value="{{ form.access_key.value|default_if_none:'' }}">
         </div>
         <div class="mb-3">
             <label for="aws_region">AWS Region</label>
+            </br>
             {{ form.aws_region }}
         </div>
+        <div style="text-align: center; margin-top: 30px;">
         <button type="submit" class="btn btn-primary">입력</button>
+        </div>
     </form>
 
 {# 회원가입시 아이디 또는 비밀번호에 문제가 있을 경우 #}
@@ -30,4 +41,5 @@
         </div>
     {% endif %}
 </div>
-{% endblock %}
+</body>
+</html>

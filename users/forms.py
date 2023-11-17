@@ -21,7 +21,7 @@ class AccessKeyForm(UserChangeForm):
         model = User
         fields = ('key_id', 'access_key', 'aws_region')
         widgets = {
-            'aws_region': forms.Select()
+            'aws_region': forms.Select(attrs={'class': 'form-control'})
         }
 
 

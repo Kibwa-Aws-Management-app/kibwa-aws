@@ -1,36 +1,170 @@
-{% extends "base.html" %}
+<!DOCTYPE html>
+{% load static %}
+<html lang="ko">
 
-{% block content %}
+<head>
+    <meta charset="UTF-8">
+    <title>AWS Management App</title>
+    <script src="{% static 'js/index.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'css/index.css' %}">
+</head>
 
-    {% if user.is_authenticated %}
-        <h1>Inspection Results for {{ user }}</h1>
-        <table>
-            <tr>
-                <th>항목명</th>
-                <th>중요도</th>
-                <th>검사 일자</th>
-                <th>Status</th>
-                <th>Detail</th>
-            </tr>
-            {% for result in results %}
-                <tr>
-                    <td>{{ result.check_name }}</td>
-                    <td>{{ result.importance }}</td>
-                    <td>{{ result.date }}</td>
-                    <td>
-                        {% if result.status == True %}
-                            PASS
-                        {% else %}
-                            FAIL
-                        {% endif %}
-                    </td>
-                    <td>{{ result.info }}</td>
-                </tr>
-            {% endfor %}
-        </table>
-    {% else %}
-        <h1>You are not logged in</h1>
-        <p>You need to <a href="{% url 'users:login' %}">login</a> to view the inspection results.</p>
-    {% endif %}
+<body>
+{% if user.is_authenticated %}
+    <div id="home" class="home">
+        <div class="side-bar">
+            <div class="side-bar-title">
+                <h1 style="margin: 20px;">AWS<br>Management<br>App</h1>
+            </div>
+            <div class="side-bar-menu">
+                <ul>
+                    <div class="menu" style="margin-bottom: 100px;" onclick="location.href='http://127.0.0.1:8000/'">
+                        <img class="logo" src="{% static 'img/home_logo.png' %}" alt="home logo">
+                        HOME
+                    </div>
+                    <div class="menu" onclick="location.href='http://127.0.0.1:8000/iam/inspection/'">
+                        <img class="logo" src="{% static 'img/iam_logo.png' %}" alt="iam logo">
+                        IAM
+                    </div>
+                    <div class="menu" onclick="location.href='http://127.0.0.1:8000/ec2/inspection/'">
+                        <img class="logo" src="{% static 'img/ec2_logo.png' %}" alt="ec2 logo">
+                        EC2
+                    </div>
+                    <div class="menu" onclick="location.href='http://127.0.0.1:8000/vpc/inspection/'">
+                        <img class="logo" src="{% static 'img/vpc_logo.png' %}" alt="vpc logo">
+                        VPC
+                    </div>
+                    <div class="menu" onclick="location.href='http://127.0.0.1:8000/s3/inspection/'">
+                        <img class="logo" src="{% static 'img/s3_logo.png' %}" alt="s3 logo">
+                        S3
+                    </div>
+                    <div class="menu" onclick="location.href='http://127.0.0.1:8000/rds/inspection/'">
+                        <img class="logo" src="{% static 'img/rds_logo.png' %}" alt="rds logo">
+                        RDS
+                    </div>
+                </ul>
+            </div>
+        </div>
 
-{% endblock %}
+        <div class="main-content">
+            <div class="main-content-title" id="main-content-title">
+                <div style="display: flex;">
+                    <!-- FIXME -->
+                    {% with 'img/'|add:results.check|add:'_logo.png' as logo_src %}
+                    <img class="logo" src="{% static 'img/iam_logo.png' %}" alt="iam logo">
+                    {% endwith %}
+                    <h1>IAM</h1>
+                </div>
+            </div>
+            <div class="main-content-body">
+                {% if results.result is not None %}
+                <div class="short-panel">
+                    <div class="short-checklist">
+                        <div class="icon-circle">
+                            <img class="short-logo" src="{% static 'img/check.png' %}" alt="check" style="margin-top: 5px;">
+                        </div>
+                        <div>
+                            <div style="font-size: 15px; font-weight: bold; color: grey;">
+                                통과된 점검
+                            </div>
+                            <div style="font-size: 25px; font-weight: bold;">
+                                {{ results.result.pass }}개
+                            </div>
+<!--                            <div style="display: flex;">-->
+<!--                                <img class="arrow-icon" src="{% static 'img/arrow_up.png' %}" alt="arrow up">-->
+<!--                                <div>-->
+<!--                                    8% this month-->
+<!--                                </div>-->
+<!--                            </div>-->
+                        </div>
+                    </div>
+                    <div class="short-checklist">
+                        <div class="icon-circle" style="background-color: rgba(255, 0, 0, 0.5);">
+                            <img class="short-logo" src="{% static 'img/toolkit_icon.png'%}" alt="check">
+                        </div>
+                        <div>
+                            <div style="font-size: 15px; font-weight: bold; color: grey;">
+                                해결해야 할 문제점
+                            </div>
+                            <div style="font-size: 25px; font-weight: bold;">
+                                {{ results.result.non_pass }}개
+                            </div>
+<!--                            <div style="display: flex;">-->
+<!--                                <img class="arrow-icon" src="{% static 'img/arrow_up.png' %}" alt="arrow up">-->
+<!--                                <div>-->
+<!--                                    1% this month-->
+<!--                                </div>-->
+<!--                            </div>-->
+                        </div>
+                    </div>
+                    <div class="short-checklist">
+                        <div class="icon-circle">
+                            <img class="short-logo" src="{% static 'img/clock_icon.png' %}" alt="check">
+                        </div>
+                        <div>
+                            <div style="font-size: 15px; font-weight: bold; color: grey;">
+                                마지막 점검일로부터
+                            </div>
+                            <div style="font-size: 25px; font-weight: bold;">
+                                {{ results.result.m_time }}일 전
+                            </div>
+                            <div style="display: flex;">
+                                <div>
+                                    점검 필요!
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                <div class="main-checklist">
+                    <div style="display: flex;">
+                        <div>
+                            <div style="font-size: 20px; font-weight: bold; margin-bottom: 5px;">
+                                보안 점검 현황
+                            </div>
+                            <div style="color: red;">
+                                보안 위험 요소를 확인하세요!
+                            </div>
+                        </div>
+                        <div>
+                            {% with "http://127.0.0.1:8000/"|add:results.check|add:"/inspection/" as url %}
+                            <button id="check-btn" onclick="window.location.href='{{ url }}'">재점검</button>
+                            {% endwith %}
+                        </div>
+                    </div>
+
+                    <div class="table-container">
+                    <table class="security-table" id="iam-table" style="max-width: inherit">
+                        <!-- 5x9 테이블 항목명 중요도 항목코드 검사일자 status -->
+                        <tr>
+                            <th>항목명</th>
+                            <th class="second-child">중요도</th>
+                            <th>검사일자</th>
+                            <th>status</th>
+                            <th>Detail</th>
+                        </tr>
+                        {% for result in results.table %}
+                        <tr>
+                            <td>{{ result.check_name }}</td>
+                            <td>{{ result.importance }}</td>
+                            <td>{{ result.date }}</td>
+                            <td>
+                                {% if result.status == True %}
+                                <p style="color: green;">PASS</p>
+                                {% else %}
+                                <p style="color: darkred;"> FAIL</p>
+                                {% endif %}
+                            </td>
+                            <td>{{ result.info }}</td>
+                        </tr>
+                        {% endfor %}
+                    </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endif %}
+</body>
+</html>

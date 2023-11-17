@@ -1,0 +1,260 @@
+body, .container {
+    background-color: #f5f5f5;
+    font-family: 'Open Sans', sans-serif;
+    font-size: 14px;
+    color: #333;
+    line-height: 1.42857143;
+    margin: 0;
+    padding: 0;
+    font-weight: 400;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    height: 100%;
+}
+
+html{
+    height: 100vh;
+}
+
+footer{
+    height: 0;
+    padding: 0;
+    margin: 0;
+}
+
+/* 링크 밑줄 없애기 */
+ul, li, a{
+    text-decoration: none;
+    color: black;
+    font-weight: bold;
+    list-style: none;
+    font-size: 25px;
+}
+
+.home{
+    display: flex;
+    justify-content: left;
+    /* align-items: center; */
+    width: auto;
+    height: 100%;
+    padding: 0%;
+    margin: 0;
+}
+
+.side-bar{
+    background-color: #fff;
+    border-right: 1px solid #e7e7e7;
+    /* position: fixed; */
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 18%;
+    min-width: 200px;
+    height: 100%;
+    z-index: 1000;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-transition: all .2s ease-in-out;
+    -o-transition: all .2s ease-in-out;
+    transition: all .2s ease-in-out;
+    margin: 0;
+}
+
+.main-content{
+    width: 75%;
+    height: 100%;
+}
+
+.side-bar-title{
+    margin-bottom: 70px;
+}
+
+.menu{
+    display: flex;
+    /* 상하정렬 */
+    align-items: center;
+    padding: 0;
+    margin: 0;
+    list-style: none;
+    margin-top: 20px;
+    border-bottom: 1px solid #e7e7e7;
+}
+
+.menu:hover{
+    /* background-color: #f5f5f5; */
+    /* 마우스 클릭 활성화 */
+    cursor: pointer;
+}
+
+.main-content-body{
+    padding: 0;
+    margin: 0;
+    width:100%;
+    height: 85%;
+    padding: 0 10px;
+}
+
+.logo{
+    width: 20px;
+    padding: 15px 15px;
+    font-size: 20px;
+
+}
+
+.big-logo{
+    width: 50px;
+    padding: 15px 15px;
+    font-size: 20px;
+}
+
+.icon-circle{
+    height: 50px;
+    width: 50px;
+    padding: 15px 15px;
+    margin-right: 20px;
+    /* 원형으로 감싸기 */
+    border-radius: 50%;
+    background-color: rgba(21, 225, 21, 0.5);
+}
+
+.short-logo{
+    width: 50px;
+    /* padding: 15px 15px; */
+    margin-right: 20px;
+    font-size: 20px;
+    /* 원형으로 감싸기 */
+    /* border-radius: 50%; */
+    /* background-color: rgb(187, 242, 187); */
+    filter:brightness(0) opacity(0.9) invert(100%);
+}
+
+.arrow-icon{
+    height: 15px;
+    width: 15px;
+    padding: 0;
+    padding-right: 7px;
+    font-size: 20px;
+    /* 원형으로 감싸기 */
+    border-radius: 50%;
+}
+
+.short-panel{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 30px;
+    margin: 0;
+    list-style: none;
+    margin-top: 10px;
+    border: 3px solid #e7e7e7;
+    border-radius: 30px;
+    /* width 화면에 꽉 차게 */
+    width: 100%;
+    background-color: #fff;
+
+}
+
+.main-checklist{
+    /* display: flex; */
+    justify-content: space-between;
+    align-items:start;
+    padding: 20px 30px;
+    margin: 0;
+    list-style: none;
+    margin-top: 15px;
+    border: 3px solid #e7e7e7;
+    border-radius: 30px;
+    /* width 화면에 꽉 차게 */
+    width: 100%;
+    height: 80%;
+    background-color: #fff;
+}
+
+.short-checklist{
+    display: flex;
+}
+
+#check-btn{
+    margin: auto;
+    margin-left: 100px;
+    color: white;
+    font-size: 20px;
+    background-color: rgb(255, 68, 0);
+    border: none;
+    border-radius: 10px;
+    padding: 10px 20px;
+}
+
+#check-btn:hover{
+    background-color: rgb(255, 68, 0, 0.8);
+    cursor: pointer;
+}
+
+.security-table{
+    border: transparent;
+    border-collapse: collapse;
+    width: 100%;
+}
+
+/* th{
+    border: transparent;
+    border-bottom: 1px solid #e7e7e7;
+    border-collapse: collapse;
+    padding: 10px;
+    text-align: center;
+    background-color: #f5f5f5;
+}
+
+td{
+    border: 1px solid #e7e7e7;
+    border-collapse: collapse;
+    padding: 10px;
+    text-align: center;
+} */
+
+/* 테이블 안쪽에만 선이 있고 바깥쪽은 없도록 변경 */
+table td {
+   border-left: 1px #cdcdcd solid;
+   border-right: 1px #cdcdcd solid;
+    text-align: left;
+    padding: 10px;
+}
+
+table th{
+   border-left: 1px #cdcdcd solid;
+   border-right: 1px #cdcdcd solid;
+    border-bottom: 1px #cdcdcd solid;
+    text-align: left;
+    padding: 10px;
+    font-weight: bold;
+    font-size: 15px;
+}
+
+table{
+    border-collapse: collapse;
+    width: 100%;
+
+}
+
+.second-child{
+    width: 100px;
+}
+
+
+table th:first-child,
+table td:first-child {
+   border-left: 0;
+    width: 150px;
+}
+table th:last-child,
+table td:last-child {
+   border-right: 0;
+}
+
+.table-container {
+    margin-top: 20px;
+    max-height: 85%; /* Set the maximum height for the table container */
+    overflow-y: auto; /* Add a vertical scrollbar when the content overflows */
+    border: 1px solid #ccc;
+}

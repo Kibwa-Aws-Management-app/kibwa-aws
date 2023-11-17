@@ -1,29 +1,46 @@
-{% extends "base.html" %}
+<!DOCTYPE html>
+{% load static %}
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 
-{# 주의!!! label의 for, input의 name, id 변경 금지! #}
-{% block content %}
+    <title>로그인</title>
+    <link rel="stylesheet" href="{% static 'css/login.css' %}" type="text/css"/>
+</head>
+
+<!--{# 주의!!! label의 for, input의 name, id 변경 금지! #}-->
+<body>
 <div class="container my-3">
+    <div style="text-align: center;">
+        <h1 style="color: rgb(28, 50, 190);">AWS</h1>
+        <h2>management</h2>
+    </div>
     <form method="post" action="{% url 'users:login' %}">
         {% csrf_token %}
         <div class="mb-3">
-            <label for="username">아이디</label>
-            <input type="text" class="form-control" name="username" id="username"
-                   value="{{ form.root_id.value|default_if_none:'' }}">
+            <label for="username">ID</label>
+            <input type="text" class="form-control" name="username" id="username" placeholder="Enter ID"
+                value="{{ form.root_id.value|default_if_none:'' }}" required>
         </div>
         <div class="mb-3">
             <label for="password">비밀번호</label>
-            <input type="password" class="form-control" name="password" id="password"
-                   value="{{ form.password.value|default_if_none:'' }}">
+            <input type="password" class="form-control" name="password" id="password" placeholder="Enter Password"
+                value="{{ form.password.value|default_if_none:'' }}" required>
         </div>
-        <button type="submit" class="btn btn-primary">Login</button>
+        <div style="text-align: center; margin-top: 30px;">
+            <button type="submit" class="btn btn-primary">Sign in</button>
+        </div>
     </form>
 
-{# 로그인시 아이디 또는 비밀번호에 문제가 있을 경우 #}
+<!--    {# 로그인시 아이디 또는 비밀번호에 문제가 있을 경우 #}-->
     {% if form.errors %}
-        <div class="error">
-            <p>{{ form.errors }}</p>
-            <p>아이디가 없거나 비밀번호가 잘못 되었습니다.</p>
-        </div>
+    <div class="error">
+        <p>{{ form.errors }}</p>
+        <p>아이디가 없거나 비밀번호가 잘못 되었습니다.</p>
+    </div>
     {% endif %}
 </div>
-{% endblock %}
+</body>
+</html>

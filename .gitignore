@@ -1,4 +1,7 @@
-aws_venv/
 .idea/
+.venv/
+
+config.py
 db.sqlite3
 my_settings.py
+*/migrations/

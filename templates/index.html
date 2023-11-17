@@ -1,29 +1,138 @@
-{% extends "base.html" %}
+<!DOCTYPE html>
+{% load static %}
+<html>
 
-{% block content %}
+<head>
+    <title>AWS MANAGEMENT APP</title>
+    <link rel="stylesheet" href="{% static 'css/index.css' %}">
+    <style>
+        .first-page {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            vertical-align: middle;
+            height: 100%;
+            width: 100%;
+        }
 
-<p> 안녕~ This is index.html </p>
-<div>
-    {% if user.is_authenticated %}
-        <a href="{% url 'users:logout' %}">로그아웃</a>
-        {% if user.access_key %}
-            {#   FIXME: 다른 테스트로 가는 태그   #}
-            <div>
-                <a href="{% url 'iam:iam' %}">IAM</a>
-                <a href="{% url 'users:logout' %}">S3</a>
-                <a href="{% url 'users:logout' %}">VPC</a>
-                <a href="{% url 'users:logout' %}">EC2</a>
-                <a href="{% url 'users:logout' %}">RDS</a>
+        button {
+            padding: 12px 30px;
+            font-size: 25px;
+            margin: 5px;
+            border-radius: 340px;
+            border: 3px solid #007bff;
+            color: #fff;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0069d9;
+        }
+
+
+        .service-link-container {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 30px;
+        padding: 30px;
+        }
+
+        .service-link {
+        padding: 50px; /* Increased padding for a much larger size */
+        border-radius: 25px; /* Slightly larger border radius for aesthetic */
+        color: white;
+        text-decoration: none;
+        text-align: center;
+        vertical-align: middle;
+        font-size: 30px; /* Larger font size */
+        box-shadow: 0 8px 15px rgba(0,0,0,0.3); /* More pronounced shadow */
+        transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .service-link:hover {
+        transform: translateY(-4px); /* More noticeable lift effect on hover */
+        box-shadow: 0 12px 20px rgba(0,0,0,0.4); /* Even more pronounced shadow on hover */
+        }
+
+        .iam { background-color: #ff3b30; }
+        .s3 { background-color: #4cd964; }
+        .vpc { background-color: #5856d6; }
+        .ec2 { background-color: #ff9500; }
+        .rds { background-color: #007aff; }
+
+    
+        
+    </style>
+</head>
+
+<body>
+    <div id="home" class="home">
+        <div class="side-bar">
+            <div class="side-bar-title">
+                <h1 style="margin: 20px;">AWS<br>Management<br>App</h1>
             </div>
+            <div class="side-bar-menu">
+                <ul>
+                    <div class="menu" style="margin-bottom: 100px;" onclick="location.href='http://127.0.0.1:8000/'">
+                        <img class="logo" src="{% static 'img/home_logo.png' %}" alt="home logo">
+                        HOME
+                    </div>
+                    <div class="menu" onclick="location.href='http://127.0.0.1:8000/iam/inspection/'">
+                        <img class="logo" src="{% static 'img/iam_logo.png' %}" alt="iam logo">
+                        IAM
+                    </div>
+                    <div class="menu" onclick="location.href='http://127.0.0.1:8000/ec2/inspection/'">
+                        <img class="logo" src="{% static 'img/ec2_logo.png' %}" alt="ec2 logo">
+                        EC2
+                    </div>
+                    <div class="menu" onclick="location.href='http://127.0.0.1:8000/vpc/inspection/'">
+                        <img class="logo" src="{% static 'img/vpc_logo.png' %}" alt="vpc logo">
+                        VPC
+                    </div>
+                    <div class="menu" onclick="location.href='http://127.0.0.1:8000/s3/inspection/'">
+                        <img class="logo" src="{% static 'img/s3_logo.png' %}" alt="s3 logo">
+                        S3
+                    </div>
+                    <div class="menu" onclick="location.href='http://127.0.0.1:8000/rds/inspection/'">
+                        <img class="logo" src="{% static 'img/rds_logo.png' %}" alt="rds logo">
+                        RDS
+                    </div>
+                </ul>
+            </div>
+        </div>
+        {% if user.is_authenticated %}
+            {% if user.access_key %}
+            <div class="first-page">
+
+                <!--버튼 구현 -->
+                <div>
+                 
+                {% if user.access_key %}
+                     <div class="service-link-container">
+                            <a href="{% url 'iam:iam' %}" class="service-link iam">IAM</a>
+                            <a href="{% url 's3:s3' %}" class="service-link s3">S3</a>
+                            <a href="{% url 'vpc:vpc' %}" class="service-link vpc">VPC</a>
+                            <a href="{% url 'ec2:ec2' %}" class="service-link ec2">EC2</a>
+                            <a href="{% url 'rds:rds' %}" class="service-link rds">RDS</a>
+                      </div>
+                    {% endif %}
+                </div>
+                
+            <button onclick="location.href='http://127.0.0.1:8000/users/logout/'" style="background-color: #ffffff; color: #007bff;">로그아웃</button>
+    <!--        {#  AWS 액세스 키를 입력받을 폼  #}-->
+            <button onclick="location.href='http://127.0.0.1:8000/users/access/'" style="background-color: #007bff;">액세스 키 등록</button>
+            </div>
+            {% endif %}
         {% else %}
-            {#  AWS 액세스 키를 입력받을 폼  #}
-            <a href="{% url 'users:access' %}">액세스 키 입력</a>
+        <div class="first-page">
+            <div style="margin-bottom: 100px; font-size: 40px; font-weight: bold;">AWS 보안 관리를 손쉽게!<br>AWS MANAGEMENT APP을 사용해보세요</div>
+            <button onclick="location.href='http://127.0.0.1:8000/users/login/'" style="background-color: #ffffff; color: #007bff;">로그인</button>
+            <button onclick="location.href='http://127.0.0.1:8000/users/signup/'" style="background-color: #007bff;">회원가입</button>
+        </div>
         {% endif %}
+    </div>
+</body>
 
-    {% else %}
-        <a href="{% url 'users:signup' %}">회원가입</a>
-        <a href="{% url 'users:login' %}">로그인</a>
-    {% endif %}
-</div>
-
-{% endblock %}
+</html>
