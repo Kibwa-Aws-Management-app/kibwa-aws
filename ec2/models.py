@@ -33,7 +33,7 @@ class EC2ENUM(Enum):
         IMPORTANCE.HIGH,
         '모든 AMI가 비공개 상태여야 안전합니다.'
     )
-    
+
     EBS_DEFAULT_ENCRYPTION = (
         'ec2_ebs_default_encryption',
         IMPORTANCE.MID,
@@ -117,44 +117,36 @@ class EC2ENUM(Enum):
         IMPORTANCE.HIGH,
         '인스턴스의 사용자 데이터에 민감한 정보가 포함되지 않아야 안전합니다.'
     )
-    # NETWORKACL_ALLOW_INGRESS_ANY_PORT = 'ec2_networkacl_allow_ingress_any_port'
-    NETWORKACL_ALLOW_INGRESS_TCP_PORT_22 =  (
+    NETWORKACL_ALLOW_INGRESS_TCP_PORT_22 = (
         'ec2_networkacl_allow_ingress_tcp_port_22',
         IMPORTANCE.MID,
         '인스턴스가 TCP 포트 22에 대한 인바운드 트래픽이 차단되어 있어야 안전합니다.'
     )
-    # NETWORKACL_ALLOW_INGRESS_TCP_PORT_3389 = 'ec2_networkacl_allow_ingress_tcp_port_3389'
-    # SECURITYGROUP_ALLOW_INGRESS_FROM_INTERNET_TO_ANY_PORT = 'ec2_securitygroup_allow_ingress_from_internet_to_any_port'
-    # SECURITYGROUP_ALLOW_INGRESS_FROM_INTERNET_TO_PORT_MONGODB = 'ec2_securitygroup_allow_ingress_from_internet_to_port_mongodb'
-    SECURITYGROUP_ALLOW_INGRESS_PORT_20_21 =  (
+    SECURITYGROUP_ALLOW_INGRESS_PORT_20_21 = (
         'ec2_securitygroup_allow_ingress_port_20_21',
         IMPORTANCE.MID,
         '인터넷에서 TCP 포트 20,21로의 인바운드 트래픽이 차단되어 있어야 안전합니다.'
     )
-    # SECURITYGROUP_ALLOW_INGRESS_FROM_INTERNET_TO_TCP_PORT_22 = 'ec2_securitygroup_allow_ingress_from_internet_to_tcp_port_22'
-    # SECURITYGROUP_ALLOW_INGRESS_FROM_INTERNET_TO_TCP_PORT_3389 = 'ec2_securitygroup_allow_ingress_from_internet_to_tcp_port_3389'
-    # SECURITYGROUP_ALLOW_INGRESS_FROM_INTERNET_TO_TCP_PORT_CASSANDRA = 'ec2_securitygroup_allow_ingress_from_internet_to_tcp_port_cassandra'
-    SECURITYGROUP_ALLOW_INGRESS_TCP_PORT_MYSQL =  (
+    SECURITYGROUP_ALLOW_INGRESS_TCP_PORT_MYSQL = (
         'ec2_securitygroup_allow_ingress_tcp_port_mysql',
         IMPORTANCE.MID,
         '인터넷에서 MySQL DB로의 인바운드 트래픽이 차단되어 있어야 안전합니다.'
     )
-    SECURITYGROUP_ALLOW_WIDE_OPEN_PUBLIC_IPV4 =  (
+    SECURITYGROUP_ALLOW_WIDE_OPEN_PUBLIC_IPV4 = (
         'ec2_securitygroup_allow_wide_open_public_ipv4',
         IMPORTANCE.MID,
         '퍼블릭 IPv4 주소 대역으로의 인바운드 트래픽이 차단되어 있어야 안전합니다.'
     )
-    SECURITYGROUP_DEFAULT_RESTRICT_TRAFFIC =  (
+    SECURITYGROUP_DEFAULT_RESTRICT_TRAFFIC = (
         'ec2_securitygroup_default_restrict_traffic',
         IMPORTANCE.MID,
         '기본적으로 모든 트래픽이 제한되어 있어야 안전합니다.'
     )
-    # SECURITYGROUP_FROM_LAUNCH_WIZARD = 'ec2_securitygroup_from_launch_wizard'
-    SECURITYGROUP_NOT_USED =  ('ec2_securitygroup_not_used',
+    SECURITYGROUP_NOT_USED = (
+        'ec2_securitygroup_not_used',
         IMPORTANCE.MID,
         '보안 그룹이 사용 중이어야 안전합니다.'
     )
-    # SECURITYGROUP_WITH_MANY_INGRESS_EGRESS_RULES = 'ec2_securitygroup_with_many_ingress_egress_rules'
 
 
 class Ec2(models.Model):
@@ -169,7 +161,7 @@ class Ec2(models.Model):
 
 
 class Ec2List(models.Model):
-    root_id = models.ForeignKey(User, on_delete=models.CASCADE, related_name="ec2_list_records", null=True)
+    root_id = models.ForeignKey(User, on_delete=models.CASCADE, related_name="ec2_list_records")
     ec2_id = models.ForeignKey(Ec2, on_delete=models.CASCADE, related_name="ec2_list_entries")
     check_name = EnumChoiceField(EC2ENUM)
     check_code = models.CharField(max_length=255)

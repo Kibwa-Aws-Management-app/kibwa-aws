@@ -3,7 +3,11 @@ from datetime import datetime, timedelta, timezone
 import shodan
 from config import secugroup_id
 from config import net_acl_id
+import logging
+import boto3
+from botocore.exceptions import ClientError
 
+logging.basicConfig(level=logging.DEBUG)
 
 class Ec2boto3:
     def __init__(self, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_DEFAULT_REGION):
@@ -351,9 +355,7 @@ class Ec2boto3:
 
 def ec2_boto3(key_id, secret, region):
     ec2_instance = Ec2boto3(key_id, secret, region)  # 클래스의 인스턴스 생성
-    print(ec2_instance.ec2_instance_managed_by_ssm())
     ec2_instance.ec2_instance_managed_by_ssm()
-    print(ec2_instance.ec2_instance_older_than_specific_days())
     check_list = get_check_list()
     result = []
 
@@ -368,7 +370,6 @@ def ec2_boto3(key_id, secret, region):
                 result.append({"check_name": None, "status": False, "info": "체크 함수를 실행시키는 과정에서 문제가 발생하였습니다."})
         else:
             result.append({"check_name": None, "status": False, "info": "AWS 연결에 문제가 발생하였습니다. 액세스 아이디와 키를 재설정 해주세요."})
-    print("result")
     return result
 
 

@@ -3,7 +3,6 @@ from datetime import datetime, timezone
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.http import require_http_methods
-
 from ec2.ec2 import ec2_boto3
 from ec2.models import Ec2, Ec2List, EC2ENUM
 from users.models import User
@@ -13,6 +12,7 @@ def index(request):
     return HttpResponse("Hello, world. You're at the Ec2 index.")
  
 
+@require_http_methods(["GET", "POST"])
 def inspection(request):
     user = request.user
     
@@ -25,11 +25,8 @@ def inspection(request):
 
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             try:
-                print("hi")
                 result = ec2_boto3(aws_config.key_id, aws_config.access_key, aws_config.aws_region)
-                print("ec2")
                 ec2, result1 = save_ec2(user, result)
-                print("save")
                 result2 = save_ec2_list(user, result, ec2)
                 return JsonResponse({'results': {'check': 'ec2', 'result': result1, 'table': result2}})
             except Exception as e:

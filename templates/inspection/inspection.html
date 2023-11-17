@@ -127,7 +127,7 @@
                                 보안 위험 요소를 확인하세요!
                             </div>
                         </div>
-                        <div>
+                        <div class="retry">
                             {% with "http://127.0.0.1:8000/"|add:results.check|add:"/inspection/" as url %}
                             <button id="check-btn" onclick="window.location.href='{{ url }}'">재점검</button>
                             {% endwith %}

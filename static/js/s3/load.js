@@ -32,7 +32,15 @@ function updateInspectionPage(results) {
         '<img style= "width: 50px;" class="logo" src="' + logoUrl + '" alt="' + results.check + ' logo">' +
         '<h1>' + results.check.toUpperCase() + '</h1>' +
         '</div>'
-    )
+    );
+
+    $('.retry-contain').html(
+        '<button id="check-btn" ' +
+        'style="margin: auto; margin-left: 100px; color: white; font-size: 20px; background-color: rgb(255, 68, 0); ' +
+        'border: none; border-radius: 10px; padding: 10px 20px;" ' +
+        'onclick="window.location.href=\'http://127.0.0.1:8000/s3/inspection/\'"> 재점검 </button>'
+    );
+
     // Update the counts of passed and non-passed checks and the days since the last inspection
     $('.short-checklist').eq(0).find('div').eq(1).html(
         '<div style="font-size: 15px; font-weight: bold; color: grey; padding-top: 12px">통과된 점검</div>' +
