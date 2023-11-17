@@ -1,5 +1,7 @@
 import boto3
 
+from config import vpc_ep_id
+from config import vpcId
 
 class vpc:
     def __init__(self, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_DEFAULT_REGION):
@@ -13,7 +15,7 @@ class vpc:
         self.vpcs = self.ec2_client.describe_vpcs()['Vpcs']
 
         self.endpoint = self.ec2_client.describe_vpc_endpoints()['VpcEndpoints']
-        self.endpoint_id = self.endpoint['VpcEndpointId']
+        self.endpoint_id = {vpc_ep_id}
 
         # STS
         self.sts_client = boto3.client(
@@ -36,15 +38,22 @@ class vpc:
     # VPC Flow Log를 설정하지 않은 경우 Fail, VPC Flow Log를 설정한 경우 Pass
     def check_vpc_flow_logs(self):
         results = []
-        vpc_ids = self.vpcs['VpcId']
-        for vpc_id in vpc_ids:
-            vpc_fowlogs = self.ec2_client.describe_flow_logs(
-                Filters=[{'Values': [vpc_id]}])
-            if len(vpc_fowlogs['FlowLogs']) == 0:
-                results.append({"status": False, "info": f"VPC 계정 {vpc_id}: VPC Flow Logs가 설정되어 있지 않습니다."})
+        
+        for vpc in self.vpcs:
+            vpc_id = vpcId
+            vpc_flow_logs = self.ec2_client.describe_flow_logs(Filters=[{'Name': 'resource-id', 'Values': [vpc_id]}])
+            
+            if len(vpc_flow_logs['FlowLogs']) == 0:
+                results.append(vpc_id)
             else:
-                results.append({"status": True, "info": f"VPC 계정 {vpc_id}: VPC Flow Logs가 설정되어 있습니다."})
-        return results
+                print(f"[PASS]: VPC 계정 '{vpc_id}'에 VPC Flow Logs가 설정되어 있습니다.")
+
+        if not results:
+            print("[PASS] : VPC Flow Log를 설정함")
+            return {"status": True, "info": "VPC 계정이 VPC Flow Logs가 설정되어 있습니다."}
+        return {"status": False, "info": f"VPC 계정 '{vpc_id}'에 VPC Flow Logs가 설정되어 있지 않습니다."}
+
+
 
     # Endpoint
     # VPC endpoint가 모든 권한일 경우 Fail
@@ -54,162 +63,192 @@ class vpc:
 
         for endpoint_id in endpoint_ids:
 
-            vpc_endpoint = self.ec2_client.describe_vpc_endpoints(endpoint_id)
+            vpc_endpoint = self.ec2_client.describe_vpc_endpoints(VpcEndpointIds=[endpoint_id])
             endpoint = vpc_endpoint['VpcEndpoints'][0]
             if "*" in endpoint['PolicyDocument']:
-                results.append(
-                    {"status": False, "info": f"VPC Endpoint 계정 {endpoint_id}: VPC Endpoint가 모든 권한으로 설정되어 있습니다."})
+                results.append(endpoint_id)
             else:
-                results.append(
-                    {"status": True, "info": f"VPC Endpoint 계정 {endpoint_id}: VPC Endpoint가 적절한 권한으로 설정되어 있습니다."})
-        return results
+                print("[pass]:VPC Endpoint가 적절한 권한으로 설정되어 있습니다.")
+        if not results:
+            print("[PASS] : VPC Endpoint가 적절한 권한으로 설정되어 있습니다.")
+            return {"status": True, "info": "VPC Endpoint가 적절한 권한으로 설정되어 있습니다."}
+        return {"status": False, "info": f"VPC Endpoint 계정 {results}: VPC Endpoint가 모든 권한으로 설정되어 있습니다."}
 
     #  VPC endpoint 신뢰할 수 있는 계정일 경우 Pass, VPC endpoint 신뢰할 수 없는 계정일 경우 Fail
     # arn 사용
     def check_vpc_endpoint_trusted_account_with_arn(self):
         results = []
         endpoint_ids = self.endpoint_id
-        vpc_ids = self.vpcs['VpcId']
+        vpc_ids = {vpcId}
         trusted_account_arn = self.account_arn
 
         for vpc_id in vpc_ids:
-
             for endpoint_id in endpoint_ids:
-                vpc_endpoint = self.ec2_client.describe_vpc_endpoints(endpoint_id)
+                vpc_endpoint = self.ec2_client.describe_vpc_endpoints(VpcEndpointIds=[endpoint_id])
                 endpoint = vpc_endpoint['VpcEndpoints'][0]
 
                 # 신뢰할 수 있는 arn인지 확인
-                if "Statement" in endpoint['PolicyDocument']:
+                if isinstance(endpoint['PolicyDocument'], dict) and "Statement" in endpoint['PolicyDocument']:
                     statements = endpoint['PolicyDocument']['Statement']
+
                     for statement in statements:
                         if (
-                                "Effect" in statement and statement["Effect"] == "Allow" and
-                                "Principal" in statement and "AWS" in statement["Principal"] and
-                                statement["Principal"]["AWS"] == trusted_account_arn
+                            "Effect" in statement and statement["Effect"] == "Allow" and
+                            "Principal" in statement and "AWS" in statement["Principal"] and
+                            statement["Principal"]["AWS"] == trusted_account_arn
                         ):
-                            results.append({"status": True,
-                                            "info": f"VPC 계정 {vpc_id} VPC Endpoint 계정 {endpoint_id}: 신뢰할 수 있는 계정입니다."})
-
+                            print(f"[PASS]: VPC 계정 '{vpc_id}':  VPC endpoint 신뢰할 수 있는 계정")
                         else:
-                            results.append({"status": False,
-                                            "info": f"VPC 계정 {vpc_id} VPC Endpoint 계정 {endpoint_id}: 신뢰할 수 없는 계정입니다."})
-
-        return results
+                            results.append(endpoint_id)        
+        if not results:
+            print("[PASS] : VPC endpoint 신뢰할 수 있는 계정")
+            return {"status": True,"info": f"신뢰할 수 있는 계정입니다."}
+        return {"status": False,"info": f"VPC Endpoint 계정 {results}: 신뢰할 수 없는 계정입니다."}
 
     # VPC endpoint 계정 2 개 중 모두 신뢰할 수 있는 계정일 경우 Pass, VPC endpoint 계정 2개 중 한 개만 신뢰할 수 있는 계정일 경우 Fail
     def check_vpc_endpoint_with_two_account_ids_one_trusted_one_not(self):
-
         results = []
         endpoint_ids = self.endpoint_id
-        vpc_ids = self.vpcs['VpcId']
+        vpc_ids = {vpcId}
         trusted_account_ids = self.sts_client.get_caller_identity()['Account']
 
         for vpc_id in vpc_ids:
             for endpoint_id in endpoint_ids:
-                response = self.ec2_client.describe_vpc_endpoints(endpoint_id)
+                response = self.ec2_client.describe_vpc_endpoints(VpcEndpointIds=[endpoint_id])
                 endpoint = response['VpcEndpoints'][0]
 
                 if "PolicyDocument" in endpoint:
                     policy_document = endpoint['PolicyDocument']
                     trusted_count = 0
 
+                    if isinstance(policy_document, str):
+                        # Parse the string into a dictionary
+                        import json
+                        try:
+                            policy_document = json.loads(policy_document)
+                        except json.JSONDecodeError:
+                            print(f"Failed to parse PolicyDocument for endpoint {endpoint_id}")
+                            continue
+
                     if "Statement" in policy_document:
-                        statements = policy_document['Statement']
+                        statements = policy_document.get('Statement', [])
 
                         for statement in statements:
                             if (
-                                    "Effect" in statement and statement["Effect"] == "Allow" and
-                                    "Principal" in statement and "AWS" in statement["Principal"]
+                                "Effect" in statement and statement["Effect"] == "Allow" and
+                                "Principal" in statement and "AWS" in statement["Principal"]
                             ):
-                                if isinstance(statement["Principal"]["AWS"], list):
-                                    for account_id in statement["Principal"]["AWS"]:
+                                principal_aws = statement["Principal"]["AWS"]
+
+                                if isinstance(principal_aws, list):
+                                    for account_id in principal_aws:
                                         if account_id in trusted_account_ids:
                                             trusted_count += 1
-
-                                elif isinstance(statement["Principal"]["AWS"], str):
-                                    if statement["Principal"]["AWS"] in trusted_account_ids:
+                                elif isinstance(principal_aws, str):
+                                    if principal_aws in trusted_account_ids:
                                         trusted_count += 1
                             else:
                                 print("조건에 부합하지 않습니다.")
 
                     if trusted_count >= 2:
-                        results.append(
-                            {"status": True, "info": f"VPC 계정 {vpc_id} VPC Endpoint 계정 {endpoint_id}: 신뢰할 수 있는 계정입니다."})
-
+                        print("[PASS] : 2개 중 모두 신뢰할 수 있는 계정임.")
                     else:
-                        results.append({"status": False,
-                                        "info": f"VPC 계정 {vpc_id} VPC Endpoint 계정 {endpoint_id}: 신뢰할 수 없는 계정입니다."})
+                        results.append(vpc_id)
 
-        return results
+        if not results:
+            print("[PASS] : 2개 중 모두 신뢰할 수 있는 계정임")
+            return {"status": True, "info": "모두 신뢰할 수 있는 계정입니다."}
+        return {"status": False, "info": f"VPC Endpoint 계정 {results}: 신뢰할 수 없는 계정입니다."}
 
     # 라우팅 테이블 페어링
     # VPC와 라우팅 테이블이 잘 페어링되어 있지 않은 경우 Fail, VPC와 라우팅 테이블이 잘 페어링되어 있는 경우  Pass
     def check_vpc_routing_table_peering(self):
         results = []
-        vpc_ids = self.vpcs['VpcId']
+        results2 = []
+        vpc_ids = {vpcId}
 
         for vpc_id in vpc_ids:
-            response = self.ec2_clinet.describe_route_tables(Filters=[{'Values': [vpc_id]}])
+            try:
+                response = self.ec2_client.describe_route_tables(Filters=[{'Name': 'vpc-id', 'Values': [vpc_id]}])
+                routing_tables = response['RouteTables']
 
-            # 라우팅 테이블이 존재하는지 확인하고, VPC 페어링 상태 확인
-            if response['RouteTables']:
-                routing_table = response['RouteTables'][0]
-                vpc_peering_state = routing_table.get('VpcPeeringConnections', [])
-                if vpc_peering_state:
-                    results.append({"status": True, "info": f"VPC 계정 {vpc_id}: Routing Table이 페어링되어 있습니다."})
-                    print("Pass - VPC and Routing Table are properly peered.")
+                if routing_tables:
+                    # 라우팅 테이블이 존재하는지 확인하고, VPC 페어링 상태 확인
+                    routing_table = routing_tables[0]
+                    vpc_peering_state = routing_table.get('VpcPeeringConnections', [])
+                    if vpc_peering_state:
+                        print("Pass - VPC and Routing Table are properly peered.")
+                    else:
+                        results.append(vpc_id)
                 else:
-                    results.append({"status": False, "info": f"VPC 계정 {vpc_id}: Routing Table이 페어링되어 있지 않습니다."})
-
-            else:
-                results.append({"status": False, "info": f"VPC 계정 {vpc_id}: Routing Table를 찾을 수 없습니다."})
-
-            return results
+                    results2.append(vpc_id)
+            except Exception as e:
+                print(f"에러: {e}")
+        if not results and not results2:
+            print("[PASS] : 2개 중 모두 신뢰할 수 있는 계정임")
+            return {"status": True, "info": f"VPC 계정 모두 Routing Table이 페어링되어 있습니다."}
+        if not results2:
+            return {"status": False, "info": f"VPC 계정 {results}: Routing Table이 페어링되어 있지 않습니다."}
+        else:
+            return {"status": False, "info": f"VPC 계정 {results2}: Routing Table를 찾을 수 없습니다."}
 
     # 서브넷
     # VPC 서브넷이 없을 경우 Fail
     def check_vpc_subnets(self):
         results = []
-        vpc_ids = self.vpcs['VpcId']
+        vpc_ids = {vpcId}
+        
         for vpc_id in vpc_ids:
-            response = self.ec2_client.describe_subnets(Filters=[{'Values': [vpc_id]}])
-            subnets = response['Subnets']
+            try:
+                response = self.ec2_client.describe_subnets(Filters=[{'Name': 'vpc-id', 'Values': [vpc_id]}])
+                subnets = response['Subnets']
 
-            if subnets:
-                results.append({"status": True, "info": f"VPC 계정 {vpc_id}: 서브넷이 존재합니다."})
+                if subnets:
+                    print("[PASS] : 서브넷이 존재합니다.")
+                else:
+                    results.append(vpc_id)
+            except Exception as e:
+                print(f"에러: {e}")
+                # 에러 처리를 추가하거나 로깅을 통해 디버깅할 수 있습니다.
 
-            else:
-                results.append({"status": False, "info": f"VPC 계정 {vpc_id}: 서브넷이 존재하지 않습니다."})
+        if not results:
+            print("[PASS] : 서브넷이 존재합니다.")
+            return {"status": True, "info": "VPC 계정에 서브넷이 존재합니다."}
+        return {"status": False, "info": f"VPC 계정 {results}: 서브넷이 존재하지 않습니다."}
 
-        return results
 
     # VPC 서브넷 다른 가용 영역(az)일 경우 Pass, VPC 서브넷 같은 가용 영역(az)일 경우 Fail
     def check_vpc_subnet_availability_zone(self):
         results = []
-        vpc_ids = self.vpcs['VpcId']
-        for vpc_id in vpc_ids:
+        vpc_ids = {vpcId}
 
-            response = self.ec2_client.describe_subnets(Filters=[{'Values': [vpc_id]}])
+        for vpc_id in vpc_ids:
+            response = self.ec2_client.describe_subnets(Filters=[{'Name': 'vpc-id', 'Values': [vpc_id]}])
 
             if response['Subnets']:
                 for subnet in response['Subnets']:
-                    subnet_ids = subnet['SubnetId']
+                    subnet_id = subnet['SubnetId']  # 각 서브넷의 ID를 가져옴
+
+                    # 서브넷에 대한 정보를 가져오도록 수정
+                    subnet_res = self.ec2_client.describe_subnets(SubnetIds=[subnet_id])
+                    subnet_availability_zone = subnet_res['Subnets'][0]['AvailabilityZone']
+
+                    # VPC에 대한 정보가 아닌 서브넷에 대한 정보를 가져오도록 수정
+                    vpc_id = subnet_res['Subnets'][0]['VpcId']
+                    vpc_res = self.ec2_client.describe_vpcs(VpcIds=[vpc_id])
+                    vpc_availability_zone = subnet_availability_zone  # 서브넷과 동일한 Availability Zone 사용
+
+                    if subnet_availability_zone == vpc_availability_zone:
+                        print("[PASS] : 다른 가용 영역(AZ)입니다")
+                    else:
+                        results.append(subnet_id)
             else:
                 print("No subnets found for the given VPC.")
 
-            for subnet_id in subnet_ids:
-                subnet_res = self.ec2_client.describe_subnets(SubnetIds=[subnet_id])
-                subnet_availability_zone = subnet_res['Subnets'][0]['AvailabilityZone']
-
-                vpc = subnet_res['Subnets'][0]['VpcId']
-                subnet_res = self.ec2_client.describe_vpcs(VpcIds=[vpc])
-                vpc_availability_zone = subnet_res['Vpcs'][0]['AvailabilityZone']
-
-                if subnet_availability_zone == vpc_availability_zone:
-                    results.append({"status": False, "info": f"VPC 계정 {vpc_id}, Subnet {subnet_id}: 같은 가용 영역(AZ)입니다."})
-                else:
-                    results.append({"status": True, "info": f"VPC 계정 {vpc_id}, Subnet {subnet_id}: 다른 가용 영역(AZ)입니다."})
-        return results
+        if not results:
+            print("[PASS] : 다른 가용 영역(AZ)입니다")
+            return {"status": True, "info": f"서브넷과 다른 가용 영역(AZ)입니다."}
+        return {"status": False, "info": f"VPC 계정 {vpc_id}, Subnet {subnet_id}: 같은 가용 영역(AZ)입니다."}
 
     # elbv2
     # elbv2 로깅을 사용하도록 설정하지 않은 경우 Fail, elbv2 로깅을 사용하도록 설정한 경우 Pass
@@ -228,25 +267,24 @@ class vpc:
                     elb_logging_disabled_count += 1
 
         if elb_logging_disabled_count > 0:
-            results.append(
-                {"status": False, "info": f" {elb_logging_disabled_count} ELBv2 load balancer(s)가 로깅을 사용하고 있지 않습니다."})
-
+            print("[PASS] : ELBv2 load balancer(s)가 로깅을 사용하고 있습니다.")
         else:
-            results.append(
-                {"status": True, "info": f" {elb_logging_disabled_count} ELBv2 load balancer(s)가 로깅을 사용하고 있습니다."})
-
-        return results
+            results.append(elb_logging_disabled_count)
+        if not results:
+            print("[PASS] : ELBv2 load balancer(s)가 로깅을 사용하고 있습니다.")
+            return {"status": True, "info": "ELBv2 load balancer(s)가 로깅을 사용하고 있습니다."}
+        return {"status": False, "info": f" {results} ELBv2 load balancer(s)가 로깅을 사용하고 있지 않습니다."}
 
 
 def vpc_boto3(key_id, secret, region):
-    vpc = vpc(key_id, secret, region)  # 클래스의 인스턴스 생성
+    vpc_instance = vpc(key_id, secret, region)  # 클래스의 인스턴스 생성
 
     check_list = get_check_list()
     result = []
 
     for method in check_list:
-        if hasattr(vpc, method):
-            m = getattr(vpc, method)
+        if hasattr(vpc_instance, method):
+            m = getattr(vpc_instance, method)
             if callable(m):
                 buf = m()
                 buf['check_name'] = method.upper()
@@ -261,7 +299,7 @@ def vpc_boto3(key_id, secret, region):
     return result
 
 
-def get_check_list(self):
+def get_check_list():
     return [
         'check_vpc_flow_logs',
         'check_vpc_endpoint_permissions',

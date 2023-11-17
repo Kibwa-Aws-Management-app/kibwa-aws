@@ -3,6 +3,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from vpc.models import Vpc, VpcList, VpcEnum
 from vpc.vpc import vpc_boto3
 from users.models import User
+from datetime import datetime, timezone
 
 
 def index(request):
@@ -19,12 +20,10 @@ def inspection(request):
         if aws_config.key_id == "":
             return redirect('users:access')
 
-        try:
-            result = vpc_boto3(aws_config.key_id, aws_config.access_key, aws_config.aws_region)
-            vpc, result1 = save_vpc(user, result)
-            result2 = save_vpc_list(user, result, vpc)
-        except:
-            return render(request, 'error.html')
+        result = vpc_boto3(aws_config.key_id, aws_config.access_key, aws_config.aws_region)
+        vpc, result1 = save_vpc(user, result)
+        result2 = save_vpc_list(user, result, vpc)
+       
         return render(request, 'inspection/inspection.html',
                       {'results': {'check': 'vpc', 'result': result1, 'table': result2}})
     return redirect('users:index')
@@ -42,8 +41,8 @@ def save_vpc(user, result):
             'total_num': len(result)
         }
     )
-    if not created and iam.last_modified:
-        time_difference = datetime.now(tz=timezone.utc) - iam.last_modified
+    if not created and vpc.last_modified:
+        time_difference = datetime.now(tz=timezone.utc) - vpc.last_modified
         days_diff = time_difference.days
     else:
         days_diff = 0
